@@ -2,8 +2,40 @@ import Table from 'react-bootstrap/Table';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import { useState, useEffect, use } from 'react';
 
 function Audit() {
+    //datos de la tabla
+  const reservasIniciales = [
+    {usuario: 'Mark', fecha: '2026-09-10', tipoUnidad: 'habitacion', tipoEvento: 'a' },
+    {usuario: 'Jacob', fecha: '2026-09-25', tipoUnidad: 'cabana', tipoEvento: 'd' }
+  ];
+
+  const [filters, setFilters] = useState({
+    usuario: '',
+    fecha: '',
+    tipoEvento: ''
+  });
+
+  //metodo de filtrado
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value
+    });
+  };
+
+  
+  //metodo de filtrado
+  const resultado = reservasIniciales.filter((dato) => {
+      return (
+        dato.usuario.toLowerCase().includes(filters.usuario.toLowerCase()) &&
+        dato.fecha.toLowerCase().includes(filters.fecha.toLowerCase()) &&
+        dato.tipoEvento.toLowerCase().includes(filters.tipoEvento.toLowerCase())
+      );
+  });
+
   return (
     <div className='m-5'>
       <Row>
@@ -20,24 +52,14 @@ function Audit() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>1</td>
-                      <td>Mark</td>
-                      <td>Otto</td>
-                      <td>@mdo</td>
+                    {resultado.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.usuario}</td>
+                        <td>{item.fecha}</td>
+                        <td>{item.tipoUnidad}</td>
+                        <td>{item.tipoEvento}</td>
                     </tr>
-                    <tr>
-                      <td>2</td>
-                      <td>Jacob</td>
-                      <td>Thornton</td>
-                      <td>@fat</td>
-                    </tr>
-                    <tr>
-                      <td>3</td>
-                      <td>@twitter</td>
-                      <td>@qsq</td>
-                      <td>@qsq</td>
-                    </tr>
+                    ))}
                   </tbody>
                 </Table>
               </Card.Body>
@@ -49,10 +71,12 @@ function Audit() {
               <Card.Body>
                 <Card.Title>Filtros</Card.Title>
                 <Card.Text>
-                  tengo que poner filtros por
-                  * Usuarios
-                  * Fecha
-                  * tipo de evento
+                  <label htmlFor="usuario">Por Nombre de Usuario</label>
+                  <input name='usuario' value={filters.usuario} onChange={handleFilterChange} type='text' placeholder='Usuario' className='form-control mb-2'></input>
+                  <label htmlFor="Fecha">Por Tipo de Evento</label>
+                  <input name='tipoEvento' value={filters.tipoEvento} onChange={handleFilterChange} type='text' placeholder='Tipo Evento' className='form-control mb-2'></input>
+                  <label htmlFor="Fecha">Por Fecha</label>
+                  <input name='fecha' value={filters.fecha} onChange={handleFilterChange} type='date' placeholder='Fecha' className='form-control'></input>
                 </Card.Text>
               </Card.Body>
             </Card>

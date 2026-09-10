@@ -1,5 +1,6 @@
-import {useState} from "react"
-import './formulario.css'
+import {useState} from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import './formulario.css';
 
 function Formulario() {
   const[formData, setFormData] = useState({
@@ -14,9 +15,9 @@ function Formulario() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefaul();
+    e.preventDefault();
     console.log('Datos enviados: ', formData);
-    alert("Formulario enviado por : ${formData.usuario}");
+    alert(`Formulario enviado por: ${formData.usuario}`);
   };
 
   return (
@@ -30,7 +31,7 @@ function Formulario() {
 
         <div>
           <label htmlFor="Fecha"> Fecha</label>
-          <input type="date" id="fecha" name="fecha" value={FormData.fecha} onChange={handleChange} required></input>
+          <input type="date" id="fecha" name="fecha" value={formData.fecha} onChange={handleChange} required></input>
         </div>
 
         <div>

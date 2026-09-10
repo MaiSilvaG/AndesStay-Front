@@ -4,44 +4,57 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Reservations() {
+  //datos de la tabla
+  const reservasIniciales = [
+    { id: 1, usuario: 'Mark', fecha: '2026-09-10', tipoUnidad: 'habitacion', tipoEvento: 'a' },
+    { id: 2, usuario: 'Jacob', fecha: '2026-09-25', tipoUnidad: 'cabana', tipoEvento: 'd' }
+  ];
 
+  const [reservas] = useState(reservasIniciales);
+  
+  //formulario
   const navigate = useNavigate();
-  const handleClick = () => {
-    navigate('./formulario.jsx');
+  const handleClickCrear = () => {
+    navigate('/formulario');
   };
 
   return (
     <div className='m-5'>
-      <h1>Mis reservas</h1>
+      <h1>Lista reservas</h1>
       <Row >
-          <Col sm={8}>
+          <Col sm={10}>
             <Card>
               <Card.Body>
                 <Table bordered hover>
                   <thead>
                     <tr>
                       <th>#</th>
+                      <th>Usuario</th>
                       <th>Fecha</th>
                       <th>Unidad</th>
                       <th>Tipo Evento</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>1</td>
-                      <td>Mark</td>
-                      <td>Otto</td>
-                      <td>@mdo</td>
+                    {reservas.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.id}</td>
+                        <td>{item.usuario}</td>
+                        <td>{item.fecha}</td>
+                        <td>{item.tipoUnidad}</td>
+                        <td>{item.tipoEvento}</td>
+                        <td>
+                        <Button variant="primary" onClick={() => handleEdit(item)}>
+                          Editar
+                        </Button>
+                      </td>
                     </tr>
-                    <tr>
-                      <td>2</td>
-                      <td>Jacob</td>
-                      <td>Thornton</td>
-                      <td>@fat</td>
-                    </tr>
+                    ))}
                   </tbody>
                 </Table>
               </Card.Body>
@@ -49,7 +62,7 @@ function Reservations() {
           </Col>
           
           <Col sm={2}>
-            <Button variant="primary" size="lg" onClick={handleClick}> Crear Reserva</Button>
+            <Button variant="primary"  onClick={handleClickCrear}>Realizar Reserva</Button>
           </Col>
       </Row>
     </div>

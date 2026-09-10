@@ -7,6 +7,8 @@ import Audit from './audit/audit';
 import Reservations from './reservations/reservations';
 import Reports from './reports/reports';
 import Login from './login/login';
+import Formulario from './reservations/formulario';
+
 
 function App() {
   return (
@@ -19,6 +21,7 @@ function App() {
         <Route path="/catalog" element={<Catalog/>}/>
         <Route path="/audit" element={<Audit/>}/>
         <Route path="/reservations" element={<Reservations/>}/>
+        <Route path="/formulario" element={<Formulario/>}/>
         <Route path="/reports" element={<Reports/>}/>
         <Route path="/login" element={<Login/>}/>
       </Routes>
