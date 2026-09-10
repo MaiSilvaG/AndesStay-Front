@@ -1,33 +1,58 @@
+import Table from 'react-bootstrap/Table';
+import Card from 'react-bootstrap/Card';
+import Col from 'react-bootstrap/Col';
+import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
+
+import { useNavigate } from 'react-router-dom';
 
 function Reservations() {
-  return (
-    <div className='container'>
-      <Form>
-        <fieldset disabled>
-          <Form.Group className="mb-3">
-            <Form.Label htmlFor="disabledTextInput">Disabled input</Form.Label>
-            <Form.Control type="text" placeholder="Disabled input" />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label htmlFor="disabledSelect">Disabled select menu</Form.Label>
-            <Form.Select id="disabledSelect">
-              <option>Disabled select</option>
-            </Form.Select>
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Check
-              type="checkbox"
-              id="disabledFieldsetCheck"
-              label="Can't check this"
-            />
-          </Form.Group>
-          <Button type="submit">Submit</Button>
-        </fieldset>
-      </Form>
-    </div>
 
+  const navigate = useNavigate();
+  const handleClick = () => {
+    navigate('./formulario.jsx');
+  };
+
+  return (
+    <div className='m-5'>
+      <h1>Mis reservas</h1>
+      <Row >
+          <Col sm={8}>
+            <Card>
+              <Card.Body>
+                <Table bordered hover>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Fecha</th>
+                      <th>Unidad</th>
+                      <th>Tipo Evento</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>Mark</td>
+                      <td>Otto</td>
+                      <td>@mdo</td>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>Jacob</td>
+                      <td>Thornton</td>
+                      <td>@fat</td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Card.Body>
+            </Card>
+          </Col>
+          
+          <Col sm={2}>
+            <Button variant="primary" size="lg" onClick={handleClick}> Crear Reserva</Button>
+          </Col>
+      </Row>
+    </div>
   );
 }
 

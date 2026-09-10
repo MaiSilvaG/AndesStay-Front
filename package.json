@@ -22,6 +22,7 @@
     "react-calendar": "^6.0.1",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.87.0",
     "react-router-dom": "^7.18.3",
     "yarn": "^1.22.22"
   },

@@ -1,0 +1,22 @@
+.contenedor{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+.formulario{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+}
+
+.formulario label{
+    display: block;
+    font-weight: bold;
+}
+
+.boton{
+    padding: 8px;
+    cursor: pointer;
+}
