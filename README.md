@@ -20,3 +20,11 @@ If you are developing a production application, we recommend using TypeScript wi
 - npm install
 - npm install @azure/msal-browser @azure/msal-react
 - npm run dev
+
+## tremor
+- npm install @tremor/react --legacy-peer-deps
+- importar en main.jsx (import '@tremor/react/dist/esm/tremor.css')
+
+- npm install -D tailwindcss@3.4.17 postcss autoprefixer --legacy-peer-deps
+- npx tailwindcss init -p
+- npm list tailwindcss

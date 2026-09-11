@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos de respaldo para componentes Tremor v3+ */
+@layer base {
+  :root {
+    --tremor-brand: #3b82f6;
+    --tremor-brand-subtle: #93c5fd;
+    --tremor-background: #ffffff;
+    --tremor-border: #e5e7eb;
+  }
+}
