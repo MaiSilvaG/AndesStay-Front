@@ -1,25 +1,25 @@
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
-import { useNavigate } from 'react-router-dom';
 import { loginRequest } from '../authConfig';
 import { ProtectedData } from '../ProtectedData';
 
 export default function Login() {
   const { instance, accounts, inProgress } = useMsal();
   const isAuthenticated = useIsAuthenticated();
-  const navigate = useNavigate();
-  const currentUser = accounts[0];
 
-  const handleLogin = () => {
-    if (inProgress === InteractionStatus.None) {
-      instance.loginRedirect(loginRequest).catch((e) => console.error(e));
+  const currentUser = instance.getActiveAccount() || accounts[0];
+
+  const handleLogin = async () => {
+    try {
+      console.log("Redirigiendo a Microsoft...");
+      await instance.loginRedirect(loginRequest);
+    } catch (e) {
+      console.error("Error al iniciar sesión:", e);
     }
   };
 
   const handleLogout = () => {
-    if (inProgress === InteractionStatus.None) {
-      instance.logoutRedirect({ postLogoutRedirectUri: '/' }).catch((e) => console.error(e));
-    }
+    instance.logoutRedirect({ postLogoutRedirectUri: '/login' }).catch((e) => console.error(e));
   };
 
   return (
@@ -41,7 +41,8 @@ export default function Login() {
 
             <hr className="my-4" />
             
-            <ProtectedData />
+            {/* muestra el rol y consulta la data
+            <ProtectedData />*/}
           </div>
         ) : (
           <div>

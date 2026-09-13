@@ -7,7 +7,7 @@ import Button from 'react-bootstrap/Button';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Reservations() {
+function ReservasCliente() {
   //datos de la tabla
   const reservasIniciales = [
     { id: 1, usuario: 'Mark', fecha: '2026-09-10', tipoUnidad: 'habitacion', tipoEvento: 'a' },
@@ -37,7 +37,6 @@ function Reservations() {
                       <th>Fecha</th>
                       <th>Unidad</th>
                       <th>Tipo Evento</th>
-                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -48,11 +47,6 @@ function Reservations() {
                         <td>{item.fecha}</td>
                         <td>{item.tipoUnidad}</td>
                         <td>{item.tipoEvento}</td>
-                        <td>
-                        <Button variant="primary" onClick={() => handleEdit(item)}>
-                          Editar
-                        </Button>
-                      </td>
                     </tr>
                     ))}
                   </tbody>
@@ -69,4 +63,4 @@ function Reservations() {
   );
 }
 
-export default Reservations;
+export default ReservasCliente;

@@ -1,11 +1,16 @@
 import { useState } from 'react';
-import { AuthenticatedTemplate, UnauthenticatedTemplate } from '@azure/msal-react';
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
 import { useApi } from './useApi';
 
 export function ProtectedData() {
+  const { instance } = useMsal();
   const { fetchWithToken } = useApi();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // 1. Obtener la cuenta activa y extraer los roles del idTokenClaims
+  const activeAccount = instance.getActiveAccount();
+  const roles = activeAccount?.idTokenClaims?.roles || [];
 
   const handleFetchData = async () => {
     setLoading(true);
@@ -23,6 +28,12 @@ export function ProtectedData() {
   return (
     <div className="p-3 border rounded">
       <AuthenticatedTemplate>
+        {/* 2. Mostrar el rol asignado */}
+        <div className="alert alert-info text-start mb-3">
+          <strong>Roles asignados en Azure:</strong>{' '}
+          {roles.length > 0 ? roles.join(', ') : 'Sin roles asignados'}
+        </div>
+
         <button 
           className="btn btn-primary mb-3" 
           onClick={handleFetchData} 
@@ -45,5 +56,7 @@ export function ProtectedData() {
         </div>
       </UnauthenticatedTemplate>
     </div>
+
+    
   );
 }

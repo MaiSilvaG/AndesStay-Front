@@ -28,3 +28,4 @@ If you are developing a production application, we recommend using TypeScript wi
 - npm install -D tailwindcss@3.4.17 postcss autoprefixer --legacy-peer-deps
 - npx tailwindcss init -p
 - npm list tailwindcss
+

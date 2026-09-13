@@ -7,17 +7,18 @@ import App from './App.jsx';
 import "./index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// 1. Crear la instancia de MSAL
 const msalInstance = new PublicClientApplication(msalConfig);
 
-// 2. Inicializar la instancia (Requerido en versiones recientes de MSAL)
 msalInstance.initialize().then(() => {
-  // Establecer cuenta activa si existe una sesión previa
-  if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
-    msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
-  }
+  // Maneja la redirección cuando el usuario vuelve de Microsoft
+  msalInstance.handleRedirectPromise().then((response) => {
+    if (response) {
+      msalInstance.setActiveAccount(response.account);
+    } else if (msalInstance.getAllAccounts().length > 0) {
+      msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
+    }
+  }).catch((error) => console.error("Error en redirect promise:", error));
 
-  // Escuchar eventos de inicio de sesión exitoso
   msalInstance.addEventCallback((event) => {
     if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
       const payload = event.payload;
@@ -25,7 +26,6 @@ msalInstance.initialize().then(() => {
     }
   });
 
-  // 3. Renderizar la aplicación dentro de MsalProvider
   createRoot(document.getElementById('root')).render(
     <StrictMode>
       <MsalProvider instance={msalInstance}>
