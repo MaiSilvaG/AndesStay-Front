@@ -100,6 +100,7 @@ export default App;
 
 {/*dominio tenant: nuevoTenant.onmicrosoft.com
 nuevos usuarios:
+-admin@nuevoTenant.onmicrosoft.com -nombre:admin -contraseña: Sofa600432 
 -recepcion@nuevoTenant.onmicrosoft.com -nombre:recepcion -contraseña: Lara928646 
 -cliente1@nuevoTenant.onmicrosoft.com -nombre:cliente1 -contraseña: Lodo344245
 -auditor@nuevoTenant.onmicrosoft.com -nombre:auditor -contraseña: Goha885056
