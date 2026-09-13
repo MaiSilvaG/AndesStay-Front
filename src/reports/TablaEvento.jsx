@@ -6,7 +6,8 @@ import {
   TableCell,
   TableHead,
   TableHeaderCell,
-  TableRow,
+  TableRow, 
+  Title
 } from '@tremor/react';
 
 const data = [
@@ -62,13 +63,11 @@ const getBadgeColor = (detalle) => {
 
 const TablaEvento = () => {
   return (
-    <Card>
+    <Card className='borde'>
       <div>
-        <h3 className="font-semibold text-gray-900 dark:text-gray-50">
-          Tabla de Eventos
-        </h3>
+        <Title>Tabla de Eventos</Title>
       </div>
-      <Table className="mt-5">
+      <Table className="mt-4">
         <TableHead>
           <TableRow>
             <TableHeaderCell>Usuario</TableHeaderCell>

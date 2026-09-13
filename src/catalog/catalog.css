@@ -1,0 +1,77 @@
+.catalog-card {
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #ffffff;
+  border: 2px solid #e0e0e0;
+}
+
+
+.catalog-img {
+  height: 350px;
+  object-fit: cover;
+  width: 100%;
+}
+
+
+.card-body-catalog {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.card-title-catalog {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #136f80;
+  margin-bottom: 4px;
+}
+
+.card-text-catalog {
+  color: #555555;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.card-price {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 0;
+}
+
+
+.calendar-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.calendar-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.selected-date {
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.react-calendar {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: inherit;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.react-calendar__tile--now {
+  background: #e6f7ff;
+}
+
+.react-calendar__tile--active {
+  background: #136f80 !important;
+  color: white !important;
+}

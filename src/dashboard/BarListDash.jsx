@@ -1,6 +1,6 @@
 import React from "react";
 import { BarList, Card, Title } from "@tremor/react";
-
+import './dashboard.css'
 const data = [
   { name: "habitacion", value: 25, color: "amber" },
   { name: "cabaña", value: 15, color: "indigo" }
@@ -8,10 +8,10 @@ const data = [
 
 const BarListDash = () => {
   return (
-    <Card className="pt-10">
+    <Card className="borde">
       <Title>Tipos de Hospedaje</Title>
-      <div className="w-full mt-4">
-        <BarList data={data} sortOrder="ascending" className="mt-4" />
+      <div>
+        <BarList data={data} sortOrder="ascending" className="barra" />
       </div>
     </Card>
   );

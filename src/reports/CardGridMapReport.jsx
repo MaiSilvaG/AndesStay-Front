@@ -36,7 +36,7 @@ const CardGridMapReport = () => {
     return(
         <Grid numItemsMd={2} numItemsLg={4} className="gap-6 mt-6">
             {data.map((item) => (
-                <Card key={item.title}>
+                <Card key={item.title} className="borde">
                     <Flex >
                         <div>
                             <Text className="text-lg font-medium text-gray-600">{item.title}</Text>

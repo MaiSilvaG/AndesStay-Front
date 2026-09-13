@@ -1,5 +1,6 @@
 import React from 'react'
 import { Card, DonutChart, Title } from '@tremor/react'
+import './dashboard.css'
 
 const unidades = [
   { name: "habitacion", value: 25},
@@ -8,7 +9,7 @@ const unidades = [
 
 const ChartDonut = () => {
   return (
-    <Card>
+    <Card className='borde'>
         <Title>Tipos de Hospedajes</Title>
         <DonutChart 
             data={unidades}

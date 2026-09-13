@@ -15,7 +15,7 @@ const data = [
 
 const TiempoCiclo = () => {
     return(
-        <Card>
+        <Card className='borde'>
             <Title>Reservas Por Hora</Title>
             <BarChart
             className="h-80"

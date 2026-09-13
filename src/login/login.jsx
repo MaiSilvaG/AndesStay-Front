@@ -2,12 +2,23 @@ import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { loginRequest } from '../authConfig';
 import { ProtectedData } from '../ProtectedData';
+import './login.css';
 
 export default function Login() {
   const { instance, accounts, inProgress } = useMsal();
   const isAuthenticated = useIsAuthenticated();
 
   const currentUser = instance.getActiveAccount() || accounts[0];
+  const userName = currentUser?.name || currentUser?.username || "";
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  };
 
   const handleLogin = async () => {
     try {
@@ -22,44 +33,51 @@ export default function Login() {
   };
 
   return (
-    <div className="container mt-5 text-center" style={{ maxWidth: '500px' }}>
-      <div className="card shadow-sm p-4">
-        <h2 className="mb-4">Portal de Autenticación</h2>
+    <div className="login-wrapper">
+      <div className="login-card">
+        <div className="login-header">
+          <h2 className="login-title">Mi Cuenta</h2>
+        </div>
 
         {isAuthenticated ? (
-          <div>
-            <div className="alert alert-success" role="alert">
-              Bienvenido, <strong>{currentUser?.name || currentUser?.username}</strong>
-            </div>
-            
-            <div className="d-grid gap-2 mb-3">
-              <button className="btn btn-danger" onClick={handleLogout}>
-                Cerrar Sesión
-              </button>
+          <div className="login-body">
+            <div className="user-profile-box">
+              <div className="user-avatar">
+                {getInitials(userName)}
+              </div>
+              <div className="user-info">
+                <span className="user-greeting">Bienvenido/a</span>
+                <strong className="user-name">{userName}</strong>
+              </div>
             </div>
 
-            <hr className="my-4" />
-            
-            {/* muestra el rol y consulta la data
-            <ProtectedData />*/}
+            <button className="btn-logout" onClick={handleLogout}>
+              Cerrar Sesión
+            </button>
+
+            {/* <hr className="my-4" />
+            <ProtectedData /> */}
           </div>
         ) : (
-          <div>
-            <p className="text-muted mb-4">
-              Debes iniciar sesión con tu cuenta institucional de Microsoft para continuar.
+          <div className="login-body">
+            <p className="login-description">
+              Inicia sesión para acceder a la plataforma.
             </p>
+            
             <button
-              className="btn btn-primary btn-lg w-100"
+              className="btn-inicio"
               onClick={handleLogin}
               disabled={inProgress !== InteractionStatus.None}
             >
               {inProgress !== InteractionStatus.None ? (
-                <span>
+                <span className="d-flex align-items-center justify-content-center">
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Cargando...
+                  Conectando...
                 </span>
               ) : (
-                'Iniciar Sesión con Microsoft'
+                <>
+                  <span>Iniciar Sesión</span>
+                </>
               )}
             </button>
           </div>

@@ -2,6 +2,7 @@ import Table from 'react-bootstrap/Table';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import './audit.css'
 import { useState, useEffect, use } from 'react';
 
 function Audit() {
@@ -38,6 +39,7 @@ function Audit() {
 
   return (
     <div className='m-5'>
+      <h1>Trazabilidad de la reserva</h1>
       <Row>
           <Col sm={8}>
             <Card>

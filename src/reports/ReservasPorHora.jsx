@@ -12,7 +12,7 @@ const reservas = [
 
 const ReservasPorHora = () => {
     return(
-        <Card>
+        <Card className='borde'>
             <Title>Reservas Por Hora</Title>
             <LineChart
             className="h-80"

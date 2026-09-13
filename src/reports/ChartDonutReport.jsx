@@ -8,7 +8,7 @@ const unidades = [
 
 const ChartDonutReport = () => {
   return (
-    <Card>
+    <Card className='borde'>
         <Title>Unidad Mas demandada</Title>
         <DonutChart 
             data={unidades}

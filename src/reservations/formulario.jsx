@@ -26,7 +26,7 @@ function Formulario() {
 
         <div>
           <label htmlFor="usuario"> Nombre usuario</label>
-          <input type="text" id="usuario" name="usuario" value={formData.usuario} onChange={handleChange} required></input>
+          <input type="text" id="usuario" name="usuario" placeholder="Usuario" value={formData.usuario} onChange={handleChange} required></input>
         </div>
 
         <div>
@@ -43,7 +43,7 @@ function Formulario() {
           </select>
         </div>
 
-        <button type="submit" className="Boton">Enviar</button>
+        <button type="submit" className="boton">Enviar</button>
 
       </form>
     </div>
