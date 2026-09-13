@@ -11,7 +11,6 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      console.log("Redirigiendo a Microsoft...");
       await instance.loginRedirect(loginRequest);
     } catch (e) {
       console.error("Error al iniciar sesión:", e);
