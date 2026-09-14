@@ -50,7 +50,7 @@ const data = [
 
 const getBadgeColor = (detalle) => {
   switch (detalle) {
-    case 'reserva confirmada':
+    case 'Confirmada':
       return 'emerald';
     case 'en espera':
       return 'amber';
@@ -73,7 +73,7 @@ const TablaEvento = () => {
             <TableHeaderCell>Usuario</TableHeaderCell>
             <TableHeaderCell>Evento</TableHeaderCell>
             <TableHeaderCell>Unidad</TableHeaderCell>
-            <TableHeaderCell>Detalle</TableHeaderCell>
+            <TableHeaderCell>Estado</TableHeaderCell>
             <TableHeaderCell className="text-right">Timestamp</TableHeaderCell>
           </TableRow>
         </TableHead>
