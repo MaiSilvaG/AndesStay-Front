@@ -51,7 +51,7 @@ const data = [
 const getBadgeColor = (detalle) => {
   switch (detalle) {
     case 'Confirmada':
-      return 'emerald';
+      return 'success';
     case 'en espera':
       return 'amber';
     case 'cancelada':

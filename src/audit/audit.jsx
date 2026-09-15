@@ -2,15 +2,17 @@ import Table from 'react-bootstrap/Table';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
-import './audit.css'
-import { useState, useEffect, use } from 'react';
+import Spinner from 'react-bootstrap/Spinner';
+import Alert from 'react-bootstrap/Alert';
+import './audit.css';
+import { useState, useEffect } from 'react';
+import { useApi } from '../useApi';
 
-function Audit() {
-    //datos de la tabla
-  const reservasIniciales = [
-    {usuario: 'Mark', fecha: '2026-09-10', tipoUnidad: 'habitacion', tipoEvento: 'a' },
-    {usuario: 'Jacob', fecha: '2026-09-25', tipoUnidad: 'cabana', tipoEvento: 'd' }
-  ];
+export default function Audit() {
+  const { fetchWithToken } = useApi();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [filters, setFilters] = useState({
     usuario: '',
@@ -18,55 +20,116 @@ function Audit() {
     tipoEvento: ''
   });
 
-  //metodo de filtrado
+  // Consumo del backend
+  useEffect(() => {
+    const baseUrl = import.meta.env.VITE_API_URL?.endsWith("/")
+      ? import.meta.env.VITE_API_URL
+      : `${import.meta.env.VITE_API_URL}/`;
+
+    // Endpoint según la documentación del microservicio
+    const AUDIT_API_URL = `${baseUrl}api/audit/events?limit=50`;
+
+    fetchWithToken(AUDIT_API_URL)
+      .then((data) => {
+        setEvents(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error al obtener auditoría:", err);
+        setError("Error al cargar la trazabilidad de eventos.");
+        setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Manejo de filtros en frontend
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters({
-      ...filters,
+    setFilters((prev) => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
-  
-  //metodo de filtrado
-  const resultado = reservasIniciales.filter((dato) => {
-      return (
-        dato.usuario.toLowerCase().includes(filters.usuario.toLowerCase()) &&
-        dato.fecha.toLowerCase().includes(filters.fecha.toLowerCase()) &&
-        dato.tipoEvento.toLowerCase().includes(filters.tipoEvento.toLowerCase())
-      );
+  const resultado = events.filter((dato) => {
+    const matchUsuario = (dato.usuario || dato.userId || '')
+      .toLowerCase()
+      .includes(filters.usuario.toLowerCase());
+
+    const matchFecha = (dato.fecha || dato.createdAt || dato.timestamp || '')
+      .toLowerCase()
+      .includes(filters.fecha.toLowerCase());
+
+    const matchTipoEvento = (dato.tipoEvento || dato.eventType || '')
+      .toLowerCase()
+      .includes(filters.tipoEvento.toLowerCase());
+
+    return matchUsuario && matchFecha && matchTipoEvento;
   });
 
   return (
-    <div className='m-5'>
-      <h1>Trazabilidad de la reserva</h1>
-      <Row>
-          <Col sm={8}>
-            <Card>
-              <Card.Body>
-                <Table bordered hover>
-                  <thead>
+    <div className="m-5">
+      <h1 className="mb-4">Trazabilidad de la reserva</h1>
+      
+      <Row className="g-4">
+        {/* Tabla de Resultados */}
+        <Col lg={8}>
+          <Card className="shadow-sm border-0">
+            <Card.Body>
+              {loading && (
+                <div className="text-center my-4">
+                  <Spinner animation="border" role="status" variant="primary">
+                    <span className="visually-hidden">Cargando eventos...</span>
+                  </Spinner>
+                </div>
+              )}
+
+              {error && <Alert variant="danger">{error}</Alert>}
+
+              {!loading && !error && (
+                <Table bordered hover responsive className="align-middle mb-0">
+                  <thead className="table-light">
                     <tr>
-                      <th>Usuarios</th>
+                      <th>Usuario / ID</th>
                       <th>Fecha</th>
-                      <th>Unidad</th>
+                      <th>Reserva ID / Unidad</th>
                       <th>Tipo Evento</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {resultado.map((item) => (
-                      <tr key={item.id}>
-                        <td>{item.usuario}</td>
-                        <td>{item.fecha}</td>
-                        <td>{item.tipoUnidad}</td>
-                        <td>{item.tipoEvento}</td>
-                    </tr>
-                    ))}
+                    {resultado.length > 0 ? (
+                      resultado.map((item, index) => (
+                        <tr key={item.eventId || item.id || index}>
+                          <td>{item.usuario || item.userId || 'N/A'}</td>
+                          <td>
+                            {item.fecha || 
+                             (item.timestamp ? new Date(item.timestamp).toLocaleString("es-CL") : 'N/A')}
+                          </td>
+                          <td>{item.reservationId || item.tipoUnidad || 'N/A'}</td>
+                          <td>
+                            <span className={`badge ${
+                              (item.eventType || item.tipoEvento)?.includes('created') 
+                                ? 'bg-success' 
+                                : 'bg-info text-dark'
+                            }`}>
+                              {item.eventType || item.tipoEvento}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="text-center text-muted py-3">
+                          No se encontraron registros de auditoría.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </Table>
-              </Card.Body>
-            </Card>
-          </Col>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
 
           <Col xs={6} md={4}>
             <Card>
@@ -88,4 +151,3 @@ function Audit() {
   );
 }
 
-export default Audit;

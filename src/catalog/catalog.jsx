@@ -4,7 +4,6 @@ import "react-calendar/dist/Calendar.css";
 import "./catalog.css";
 import { useApi } from "../useApi";
 
-// Garantiza la barra final antes de concatenar el endpoint /api/units
 const baseUrl = import.meta.env.VITE_API_URL?.endsWith("/")
   ? import.meta.env.VITE_API_URL
   : `${import.meta.env.VITE_API_URL}/`;
@@ -18,7 +17,6 @@ export default function Catalog() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // fetchWithToken entrega directamente la data (objeto/array) parseada
     fetchWithToken(API_URL)
       .then((data) => {
         setUnits(data.filter((unit) => unit.active !== false));
@@ -29,7 +27,6 @@ export default function Catalog() {
         setError(err.message || "Error al obtener el catálogo de unidades");
         setLoading(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
