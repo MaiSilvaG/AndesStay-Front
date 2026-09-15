@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
 import { useApi } from './useApi';
+import { loginRequest } from './authConfig';
 
 export function ProtectedData() {
   const { instance } = useMsal();
@@ -15,7 +16,9 @@ export function ProtectedData() {
   const handleFetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetchWithToken('https://graph.microsoft.com/v1.0/me');
+      // Esto es una llamada a Microsoft Graph -> usa loginRequest (User.Read),
+      // NO el token de nuestra API.
+      const res = await fetchWithToken('https://graph.microsoft.com/v1.0/me', {}, loginRequest);
       const json = await res.json();
       setData(json);
     } catch (err) {
@@ -34,9 +37,9 @@ export function ProtectedData() {
           {roles.length > 0 ? roles.join(', ') : 'Sin roles asignados'}
         </div>
 
-        <button 
-          className="btn btn-primary mb-3" 
-          onClick={handleFetchData} 
+        <button
+          className="btn btn-primary mb-3"
+          onClick={handleFetchData}
           disabled={loading}
         >
           {loading ? 'Consultando...' : 'Obtener Datos del Usuario vía API'}
@@ -56,7 +59,5 @@ export function ProtectedData() {
         </div>
       </UnauthenticatedTemplate>
     </div>
-
-    
   );
 }

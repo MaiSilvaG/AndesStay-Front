@@ -1,35 +1,44 @@
-import { useMsal } from '@azure/msal-react';
-import { loginRequest } from './authConfig';
+import { useMsal } from "@azure/msal-react";
+import { apiRequest } from "./authConfig";
 
 export function useApi() {
   const { instance, accounts } = useMsal();
 
   const fetchWithToken = async (url, options = {}) => {
     const account = instance.getActiveAccount() || accounts[0];
+
     if (!account) {
-      throw new Error('No hay una cuenta activa');
+      throw new Error("No hay una sesión activa de usuario.");
     }
 
     try {
-      // Solicitar token silenciosamente
+      // Solicita el token de acceso para la API expuesta usando apiRequest
       const response = await instance.acquireTokenSilent({
-        ...loginRequest,
-        account,
+        ...apiRequest,
+        account: account,
       });
 
-      // Mezclar las opciones/headers personalizados con el Bearer Token
+      const token = response.accessToken;
+
+      // Adjunta la cabecera Authorization con el token Bearer
       const headers = {
         ...options.headers,
-        Authorization: `Bearer ${response.accessToken}`,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       };
 
-      return fetch(url, {
+      const res = await fetch(url, {
         ...options,
         headers,
       });
+
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: No se pudo obtener el catálogo`);
+      }
+
+      return await res.json();
     } catch (error) {
-      // Si el token falló al renovarse silenciosamente, puedes manejar una re-autenticación si es necesario
-      console.error('Error al obtener el token silenciosamente:', error);
+      console.error("Error en fetchWithToken (useApi):", error);
       throw error;
     }
   };
