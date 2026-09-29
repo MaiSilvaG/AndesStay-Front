@@ -1,36 +1,31 @@
-import { Card, BarChart , Title } from '@tremor/react'
+import React from 'react';
+import { Card, BarChart, Title } from '@tremor/react';
 
-const data = [
-  {
-    categoria: "Habitación",
-    tiempoPromedio: 45, // minutos reales
-    tiempoMeta: 60      // meta límite
-  },
-  {
-    categoria: "Cabaña",
-    tiempoPromedio: 110, // minutos reales (alerta / cuello de botella)
-    tiempoMeta: 90       // meta límite
-  }
-];
+const TiempoCiclo = ({ summary }) => {
+  const byUnit = summary?.byUnit || summary?.conteoPorUnidad || {
+    "Unidad 1": 1, "Unidad 2": 1, "Unidad 3": 1, "Unidad 4": 1, "Unidad 5": 1
+  };
 
-const TiempoCiclo = () => {
-    return(
-        <Card className='borde'>
-            <Title>Reservas Por Hora</Title>
-            <BarChart
-            className="h-80"
-            data={data}
-            index="hour"
-            categories={["tiempoPromedio", "tiempoMeta"]}
-            colors={["amber", "indigo"]}
-            valueFormatter={(number) => `${number}`}
-            onValueChange={(v) => console.log(v)}
-            xAxisLabel="Tipo Unidad"
-            yAxisLabel="Tiempo minutos"
-            />
-        </Card>
-        
-    );
+  const data = Object.entries(byUnit).map(([unit, count]) => ({
+    unidad: `Unidad ${unit.replace('Unidad ', '')}`,
+    Cantidad: Number(count)
+  }));
+
+  return (
+    <Card className='borde'>
+      <Title>Reservas por Unidad</Title>
+      <BarChart
+        className="h-80 mt-4"
+        data={data.length > 0 ? data : [{ unidad: "Unidad 1", Cantidad: 1 }]}
+        index="unidad"
+        categories={["Cantidad"]}
+        colors={["indigo"]}
+        valueFormatter={(number) => `${number}`}
+        xAxisLabel="Unidades"
+        yAxisLabel="Total Reservas"
+      />
+    </Card>
+  );
 };
 
-export default TiempoCiclo
+export default TiempoCiclo;

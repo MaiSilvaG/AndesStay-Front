@@ -1,25 +1,31 @@
-import React from 'react'
-import { Card, DonutChart, Title } from '@tremor/react'
+import React from 'react';
+import { Card, DonutChart, Title } from '@tremor/react';
 
-const unidades = [
-  { name: "habitacion", value: 25},
-  { name: "cabaña", value: 15}
-];
+const ChartDonutReport = ({ summary }) => {
+  const statusMap = summary?.byStatus || summary?.conteoPorEstado || {};
+  
+  const formattedData = Object.entries(statusMap).map(([status, count]) => ({
+    name: status,
+    value: Number(count)
+  }));
 
-const ChartDonutReport = () => {
   return (
     <Card className='borde'>
-        <Title>Unidad Mas demandada</Title>
+      <Title>Reservas por Estado</Title>
+      {formattedData.length > 0 ? (
         <DonutChart 
-            data={unidades}
-            variant='pie'
-            category='value'
-            dataKey='name'
-            marginTop='mt-6'
-            colors={['amber','indigo']}
+          data={formattedData}
+          variant='pie'
+          category='value'
+          dataKey='name'
+          marginTop='mt-6'
+          colors={['blue', 'indigo', 'amber', 'emerald', 'slate', 'rose']}
         />
+      ) : (
+        <p className="text-gray-500 text-sm mt-4">Sin datos de estados</p>
+      )}
     </Card>
-  )
-}
+  );
+};
 
-export default ChartDonutReport
+export default ChartDonutReport;

@@ -1,33 +1,33 @@
-import {LineChart, Card, Title, Metric} from '@tremor/react'
+import React from 'react';
+import { Card, BarChart, Title } from '@tremor/react';
 
-const reservas = [
-  { date: "2026-09-10", hour: "08:00", Habitacion: 2, Cabaña: 1 },
-  { date: "2026-09-10", hour: "10:00", Habitacion: 6, Cabaña: 3 },
-  { date: "2026-09-10", hour: "12:00", Habitacion: 11, Cabaña: 5 },
-  { date: "2026-09-10", hour: "14:00", Habitacion: 14, Cabaña: 8 },
-  { date: "2026-09-10", hour: "16:00", Habitacion: 10, Cabaña: 6 },
-  { date: "2026-09-10", hour: "18:00", Habitacion: 7, Cabaña: 4 },
-  { date: "2026-09-10", hour: "20:00", Habitacion: 3, Cabaña: 2 }
-];
+const ReservasPorUnidad = ({ summary }) => {
+  const byUnit = summary?.byUnit || summary?.conteoPorUnidad || {};
 
-const ReservasPorHora = () => {
-    return(
-        <Card className='borde'>
-            <Title>Reservas Por Hora</Title>
-            <LineChart
-            className="h-80"
-            data={reservas}
-            index="hour"
-            categories={["Habitacion", "Cabaña"]}
-            colors={["amber", "indigo"]}
-            valueFormatter={(number) => `${number}`}
-            onValueChange={(v) => console.log(v)}
-            xAxisLabel="Horas"
-            yAxisLabel="Cantidad Reservas"
-            />
-        </Card>
-        
-    );
+  const data = Object.entries(byUnit).map(([unitId, count]) => ({
+    unidad: `Unidad ${unitId}`,
+    Reservas: Number(count)
+  }));
+
+  return (
+    <Card className='borde'>
+      <Title>Reservas por Unidad</Title>
+      {data.length > 0 ? (
+        <BarChart
+          className="h-80 mt-4"
+          data={data}
+          index="unidad"
+          categories={["Reservas"]}
+          colors={["indigo"]}
+          valueFormatter={(number) => `${number} reservas`}
+          xAxisLabel="Unidad ID"
+          yAxisLabel="Cantidad"
+        />
+      ) : (
+        <p className="text-gray-500 text-sm mt-4">Sin datos por unidad</p>
+      )}
+    </Card>
+  );
 };
 
-export default ReservasPorHora
+export default ReservasPorUnidad;

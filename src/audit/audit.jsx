@@ -12,7 +12,6 @@ export default function Audit() {
   const { fetchWithToken } = useApi();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const [filters, setFilters] = useState({
     usuario: '',
@@ -26,23 +25,22 @@ export default function Audit() {
       ? import.meta.env.VITE_API_URL
       : `${import.meta.env.VITE_API_URL}/`;
 
-    // Endpoint según la documentación del microservicio
     const AUDIT_API_URL = `${baseUrl}api/audit/events?limit=50`;
 
     fetchWithToken(AUDIT_API_URL)
       .then((data) => {
-        setEvents(data);
+        const safeData = Array.isArray(data) ? data : [];
+        setEvents(safeData);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error al obtener auditoría:", err);
-        setError("Error al cargar la trazabilidad de eventos.");
+        setEvents([]);
         setLoading(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Manejo de filtros en frontend
+  // Manejo de filtros
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
@@ -51,16 +49,23 @@ export default function Audit() {
     }));
   };
 
-  const resultado = events.filter((dato) => {
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  const resultado = safeEvents.filter((dato) => {
+    if(!dato) return false;
+
     const matchUsuario = (dato.usuario || dato.userId || '')
+      .toString()
       .toLowerCase()
       .includes(filters.usuario.toLowerCase());
 
     const matchFecha = (dato.fecha || dato.createdAt || dato.timestamp || '')
+      .toString()
       .toLowerCase()
       .includes(filters.fecha.toLowerCase());
 
     const matchTipoEvento = (dato.tipoEvento || dato.eventType || '')
+      .toString()
       .toLowerCase()
       .includes(filters.tipoEvento.toLowerCase());
 
@@ -76,17 +81,13 @@ export default function Audit() {
         <Col lg={8}>
           <Card className="shadow-sm border-0">
             <Card.Body>
-              {loading && (
+              {loading ? (
                 <div className="text-center my-4">
                   <Spinner animation="border" role="status" variant="primary">
                     <span className="visually-hidden">Cargando eventos...</span>
                   </Spinner>
                 </div>
-              )}
-
-              {error && <Alert variant="danger">{error}</Alert>}
-
-              {!loading && !error && (
+              ) : (
                 <Table bordered hover responsive className="align-middle mb-0">
                   <thead className="table-light">
                     <tr>
@@ -130,7 +131,8 @@ export default function Audit() {
             </Card.Body>
           </Card>
         </Col>
-
+        
+        {/*tabla de filtros*/}
           <Col xs={6} md={4}>
             <Card>
               <Card.Body>

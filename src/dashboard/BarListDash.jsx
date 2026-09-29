@@ -1,20 +1,34 @@
 import React from "react";
-import { BarList, Card, Title } from "@tremor/react";
-import './dashboard.css'
-const data = [
-  { name: "habitacion", value: 25, color: "amber" },
-  { name: "cabaña", value: 15, color: "indigo" }
-];
+import { BarList, Card, Title, Text } from "@tremor/react";
+import './dashboard.css';
 
-const BarListDash = () => {
+export default function BarListDash({ summary }) {
+  const byStatus = summary?.byStatus || summary?.reservationsByStatus || {};
+
+  const labelMap = {
+    CREADA: "Creada",
+    CONFIRMADA: "Confirmada",
+    CHECKIN_PENDIENTE: "Check-in Pendiente",
+    EN_ESTADIA: "En Estadía",
+    CHECKOUT: "Check-out (Finalizada)",
+    CANCELADA: "Cancelada"
+  };
+
+  const listData = Object.entries(byStatus).map(([key, val]) => ({
+    name: labelMap[key] || key,
+    value: Number(val) || 0,
+  }));
+
   return (
     <Card className="borde">
-      <Title>Tipos de Hospedaje</Title>
-      <div>
-        <BarList data={data} sortOrder="ascending" className="barra" />
+      <Title>Reservas por Estado</Title>
+      <div className="mt-4">
+        {listData.length > 0 ? (
+          <BarList data={listData} sortOrder="descending" className="barra" />
+        ) : (
+          <Text className="text-center text-muted my-6">Sin datos de estados</Text>
+        )}
       </div>
     </Card>
   );
-};
-
-export default BarListDash;
+}

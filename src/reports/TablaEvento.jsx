@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Card,
   Badge,
@@ -10,87 +11,57 @@ import {
   Title
 } from '@tremor/react';
 
-const data = [
-  {
-    timestamp: "23/09/2026 13:00",
-    usuario: "John Doe",
-    evento: "check-in",
-    unidad: "Cabaña",
-    detalle: "reserva confirmada"
-  },
-  {
-    timestamp: "23/09/2026 13:15",
-    usuario: "Maria Gomez",
-    evento: "check-out",
-    unidad: "Habitación",
-    detalle: "reserva confirmada"
-  },
-  {
-    timestamp: "23/09/2026 13:30",
-    usuario: "Carlos Perez",
-    evento: "check-in",
-    unidad: "Habitación",
-    detalle: "en espera"
-  },
-  {
-    timestamp: "23/09/2026 14:05",
-    usuario: "Admin System",
-    evento: "check-in",
-    unidad: "Cabaña",
-    detalle: "cancelada"
-  },
-  {
-    timestamp: "23/09/2026 14:20",
-    usuario: "John Doe",
-    evento: "check-out",
-    unidad: "Habitación",
-    detalle: "reserva confirmada"
-  }
-];
-
-const getBadgeColor = (detalle) => {
-  switch (detalle) {
-    case 'Confirmada':
-      return 'success';
-    case 'en espera':
+const getBadgeColor = (status) => {
+  switch (status) {
+    case 'CONFIRMADA':
+    case 'EN_ESTADIA':
+      return 'emerald';
+    case 'CREADA':
+    case 'CHECKIN_PENDIENTE':
       return 'amber';
-    case 'cancelada':
-      return 'red';
+    case 'CANCELADA':
+      return 'rose';
     default:
       return 'slate';
   }
 };
 
-const TablaEvento = () => {
+const TablaEvento = ({ summary }) => {
+  const reservas = summary?.reservas || summary?.projections || [];
+
   return (
     <Card className='borde'>
-      <div>
-        <Title>Tabla de Eventos</Title>
-      </div>
+      <Title>Últimas Actualizaciones de Reservas</Title>
       <Table className="mt-4">
         <TableHead>
           <TableRow>
-            <TableHeaderCell>Usuario</TableHeaderCell>
-            <TableHeaderCell>Evento</TableHeaderCell>
-            <TableHeaderCell>Unidad</TableHeaderCell>
-            <TableHeaderCell>Estado</TableHeaderCell>
-            <TableHeaderCell className="text-right">Timestamp</TableHeaderCell>
+            <TableHeaderCell>ID Reserva</TableHeaderCell>
+            <TableHeaderCell>Unidad ID</TableHeaderCell>
+            <TableHeaderCell>Estado Actual</TableHeaderCell>
+            <TableHeaderCell className="text-right">Última Actualización</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((item, index) => (
-            <TableRow key={`${item.timestamp}-${item.usuario}-${index}`}>
-              <TableCell>{item.usuario}</TableCell>
-              <TableCell className="capitalize">{item.evento}</TableCell>
-              <TableCell>{item.unidad}</TableCell>
-              <TableCell>
-                <Badge color={getBadgeColor(item.detalle)}>
-                  {item.detalle}
-                </Badge>
+          {reservas.length > 0 ? (
+            reservas.map((item) => (
+              <TableRow key={item.reservationId || item.id}>
+                <TableCell>#{item.reservationId || item.id}</TableCell>
+                <TableCell>Unidad {item.unitId}</TableCell>
+                <TableCell>
+                  <Badge color={getBadgeColor(item.status)}>
+                    {item.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">{item.lastEventAt || item.checkInDate}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-gray-500">
+                No hay registros de reservas proyectadas.
               </TableCell>
-              <TableCell className="text-right">{item.timestamp}</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </Card>

@@ -16,6 +16,9 @@ function App() {
       <Navigation />
 
       <Routes>
+
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
         {/* login: publico */}
         <Route path="/login" element={<Login />} />
 

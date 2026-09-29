@@ -12,7 +12,7 @@ export function useApi() {
     }
 
     try {
-      // Solicita el token de acceso para la API expuesta usando apiRequest
+      // 1. Solicitar token silenciosamente
       const response = await instance.acquireTokenSilent({
         ...apiRequest,
         account: account,
@@ -20,23 +20,38 @@ export function useApi() {
 
       const token = response.accessToken;
 
-      // Adjunta la cabecera Authorization con el token Bearer
+      // 2. Mezclar encabezados con el token Bearer
       const headers = {
+        "Content-Type": "application/json",
         ...options.headers,
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       };
 
+      // 3. Realizar la petición
       const res = await fetch(url, {
         ...options,
         headers,
       });
 
       if (!res.ok) {
-        throw new Error(`Error ${res.status}: No se pudo obtener el catálogo`);
+        // Intentar obtener el mensaje de error que devuelva el backend
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Error ${res.status}: Falló la petición a la API.`
+        );
       }
 
-      return await res.json();
+      // 4. Si la respuesta es 204 No Content o no tiene cuerpo, retornar objeto/array vacío
+      if (res.status === 204) {
+        return null;
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await res.json();
+      }
+
+      return await res.text();
     } catch (error) {
       console.error("Error en fetchWithToken (useApi):", error);
       throw error;
