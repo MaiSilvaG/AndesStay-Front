@@ -21,5 +21,3 @@ const ChartDonut = () => {
     </Card>
   )
 }
-
-export default ChartDonut
