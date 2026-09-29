@@ -1,35 +1,68 @@
-# React + Vite
+# AndesStay - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Interfaz web de **AndesStay**, una plataforma de reservas de hospedaje. Desarrollada con React y Vite y con los estilos de Tailwind CSS y componentes de Tremor.
 
-Currently, two official plugins are available:
+## Instalación de Dependencias
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Instalador librerías (Vite, React)
+```
+npm install
+```
 
-## React Compiler
+- Autenticación con Azure Msal
+```
+npm install @azure/msal-browser @azure/msal-react
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Bootstrap `https://react-bootstrap.netlify.app/docs/getting-started/introduction`
+```
+npm install react-bootstrap bootstrap
+```
+- Importar en `main.jsx`
+```
+import 'bootstrap/dist/css/bootstrap.min.css'
+```
 
-## Expanding the Oxlint configuration
+- Tremor libreria 
+```
+npm install @tremor/react --legacy-peer-deps
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- Tailwind CSS
+```
+npm install -D tailwindcss@3.4.17 postcss autoprefixer --legacy-peer-deps
+```
+
+- Tanto Tremor (funciona con una versión mas abajo que el Node que tengo) como Tailwind CSS me presentaron problemas de versión con Node, así que ocupe: --legacy-peer-dep
+
+## Configuración de Tailwind CSS y Tremor
+- Crea e inicializa los archivos de Tailwind
+```
+npx tailwindcss init -p
+```
+
+- Verifica la versión instalada
+```
+npm list tailwindcss
+```
+
+- Agregar lo siguiente en el archivo `tailwind.config.js`
+```
+module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@tremor/react/**/*.{js,ts,jsx,tsx}",
+  ],
+```
+
+## Ejecución del proyecto
+```
+npm run dev
+```
 
 
-## instalar
-- npm install
-- npm install @azure/msal-browser @azure/msal-react
-- npm run dev
-
-## tremor
-- npm install @tremor/react --legacy-peer-deps
-- importar en main.jsx (import '@tremor/react/dist/esm/tremor.css')
-
-- npm install -D tailwindcss@3.4.17 postcss autoprefixer --legacy-peer-deps
-- npx tailwindcss init -p
-- npm list tailwindcss
-
-## credenciales
+## Credenciales Autenticación Msal
 - dominio tenant: nuevoTenant.onmicrosoft.com
 nuevos usuarios:
 - admin@nuevoTenant.onmicrosoft.com -nombre:admin -contraseña: Sofa600432 
