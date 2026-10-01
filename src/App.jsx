@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './navbar/navbar';
-import Catalog from './catalog/catalog';  
+import Catalog from './catalog/catalog'; 
+import CatalogCliente from './catalog/catalogCliente'; 
 import Dashboard from './dashboard/dashboard';
 import Audit from './audit/audit';
 import Reports from './reports/reports';
@@ -71,6 +72,17 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
+        {/* catalogCliente: Cliente */}
+        *<Route 
+          path="/catalogCliente" 
+          element={
+            <ProtectedRoute allowedRoles={['Cliente']}>
+              <CatalogCliente />
+            </ProtectedRoute>
+          } 
+        />
+        
 
         {/* reports: Admin */}
         <Route 

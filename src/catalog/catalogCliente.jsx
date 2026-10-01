@@ -4,7 +4,6 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./catalog.css";
 import { useApi } from "../useApi";
-import CrearUnidad from "./CrearUnidad";
 import ReservaModal, { toISODate } from "./ReservaModal";
 
 const baseUrl = import.meta.env.VITE_API_URL?.endsWith("/")
@@ -20,20 +19,19 @@ const FILTROS_INICIALES = {
   soloDisponibles: false,
 };
 
-export default function Catalog() {
+export default function CatalogCliente() {
   const { fetchWithToken } = useApi();
   const navigate = useNavigate();
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
-  const [showCrear, setShowCrear] = useState(false);
   const [reserva, setReserva] = useState(null); // { unit, checkInDate } | null
 
   const cargarUnidades = () =>
     fetchWithToken(API_URL)
       .then((data) => {
         const safeData = Array.isArray(data) ? data : [];
-        setUnits(safeData.filter((unit) => unit?.active !== false));
+        setUnits(safeData.filter((unit) => unit && unit.active !== false));
       })
       .catch((err) => {
         console.error("Error conectando con el microservicio:", err);
@@ -44,15 +42,6 @@ export default function Catalog() {
   useEffect(() => {
     cargarUnidades();
   }, []);
-
-  const handleCrearUnidad = async (nuevaUnidad) => {
-    await fetchWithToken(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevaUnidad),
-    });
-    await cargarUnidades();
-  };
 
   const tipos = useMemo(
     () => [...new Set(units.map((u) => u.type).filter(Boolean))],
@@ -88,13 +77,6 @@ export default function Catalog() {
     <div className="container my-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="h4 mb-0">Catálogo de unidades</h2>
-        <button
-          type="button"
-          className="btn btn-success"
-          onClick={() => setShowCrear(true)}
-        >
-          + Crear unidad
-        </button>
       </div>
 
       {/* Barra de filtros */}
@@ -226,12 +208,6 @@ export default function Catalog() {
         </div>
       )}
 
-      <CrearUnidad
-        show={showCrear}
-        onClose={() => setShowCrear(false)}
-        onSubmit={handleCrearUnidad}
-      />
-
       <ReservaModal
         show={!!reserva}
         unit={reserva?.unit}
@@ -239,7 +215,7 @@ export default function Catalog() {
         onClose={() => setReserva(null)}
         onCreated={() => {
           cargarUnidades(); // refresca los cupos
-          navigate("/reservations"); // igual que hacía el formulario
+          navigate("/reservations");
         }}
       />
     </div>
@@ -248,6 +224,9 @@ export default function Catalog() {
 
 function DisponibilidadCalendario({ unit, onReservar }) {
   const [fecha, setFecha] = useState(new Date());
+
+  if (!unit) return null;
+
   const sinCupos = !(unit.availableSlots > 0);
 
   return (

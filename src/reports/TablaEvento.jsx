@@ -7,7 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeaderCell,
-  TableRow, 
+  TableRow,
   Title
 } from '@tremor/react';
 
@@ -26,12 +26,34 @@ const getBadgeColor = (status) => {
   }
 };
 
+// Fecha de referencia de cada reserva: última actualización, o check-in si no existe
+const getFecha = (item) => item.lastEventAt || item.checkInDate;
+
+const toTime = (value) => {
+  const t = new Date(value).getTime();
+  return isNaN(t) ? 0 : t;
+};
+
+const formatFecha = (value) => {
+  if (!value) return 'N/A';
+  const d = new Date(value);
+  return isNaN(d) ? 'N/A' : d.toLocaleString('es-CL');
+};
+
+const LIMITE = 5;
+
 const TablaEvento = ({ summary }) => {
-  const reservas = summary?.reservas || summary?.projections || [];
+  const todas = summary?.reservas || summary?.projections || [];
+
+  // Copia antes de ordenar para no mutar el array original de las props
+  const reservas = [...todas]
+    .filter(Boolean)
+    .sort((a, b) => toTime(getFecha(b)) - toTime(getFecha(a)))
+    .slice(0, LIMITE);
 
   return (
-    <Card className='borde'>
-      <Title>Últimas Actualizaciones de Reservas</Title>
+    <Card className="borde">
+      <Title>Últimas {LIMITE} Actualizaciones de Reservas</Title>
       <Table className="mt-4">
         <TableHead>
           <TableRow>
@@ -52,7 +74,7 @@ const TablaEvento = ({ summary }) => {
                     {item.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">{item.lastEventAt || item.checkInDate}</TableCell>
+                <TableCell className="text-right">{formatFecha(getFecha(item))}</TableCell>
               </TableRow>
             ))
           ) : (

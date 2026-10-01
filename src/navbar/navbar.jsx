@@ -40,6 +40,10 @@ function Navigation() {
               {(isAdmin || isRecepcion) && (
                 <Nav.Link as={Link} to="/catalog">Catalog</Nav.Link>
               )}
+              {/*CatalogCliente: Cliente */}
+              {isCliente && (
+                <Nav.Link as={Link} to="/catalogCliente">Catalog</Nav.Link>
+              )}
 
               {/* Reportes: Admin */}
               {isAdmin && (
