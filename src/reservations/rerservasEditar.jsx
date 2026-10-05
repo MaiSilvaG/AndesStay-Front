@@ -74,7 +74,7 @@ function ReservasEditar() {
       setReservas(list);
     } catch (err) {
       console.error('Error al cargar reservas:', err);
-      setErrorMsg('No se pudo conectar con el microservicio de reservas.');
+      setErrorMsg(`No se pudo conectar con el microservicio de reservas. (${err.message})`);
       setReservas([]);
     } finally {
       setLoading(false);

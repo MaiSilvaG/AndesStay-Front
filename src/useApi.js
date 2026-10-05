@@ -1,8 +1,23 @@
 import { useMsal } from "@azure/msal-react";
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { apiRequest } from "./authConfig";
 
 export function useApi() {
   const { instance, accounts } = useMsal();
+
+  // Pide el token de NUESTRA API. Si Azure exige interacción (p. ej. falta el
+  // consentimiento del scope access_as_user), redirige al login para obtenerlo.
+  const getToken = async (account) => {
+    try {
+      const response = await instance.acquireTokenSilent({ ...apiRequest, account });
+      return response.accessToken;
+    } catch (error) {
+      if (error instanceof InteractionRequiredAuthError) {
+        await instance.acquireTokenRedirect({ ...apiRequest, account });
+      }
+      throw error;
+    }
+  };
 
   const fetchWithToken = async (url, options = {}) => {
     const account = instance.getActiveAccount() || accounts[0];
@@ -12,12 +27,8 @@ export function useApi() {
     }
 
     try {
-      const response = await instance.acquireTokenSilent({
-        ...apiRequest,
-        account: account,
-      });
-
-      const token = response.accessToken;
+      // 1. Solicitar token (silencioso, con fallback a redirect)
+      const token = await getToken(account);
 
       const headers = {
         "Content-Type": "application/json",
@@ -31,9 +42,12 @@ export function useApi() {
       });
 
       if (!res.ok) {
+        // Spring devuelve los errores como ProblemDetail (campo "detail")
         const errorData = await res.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Error ${res.status}: Falló la petición a la API.`
+          errorData.detail ||
+            errorData.message ||
+            `Error ${res.status}: Falló la petición a la API.`
         );
       }
 

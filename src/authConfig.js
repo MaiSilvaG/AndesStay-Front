@@ -21,13 +21,16 @@ export const msalConfig = {
   },
 };
 
-// Scope para el LOGIN / perfil del usuario (Microsoft Graph).
-export const loginRequest = {
-  scopes: ['User.Read'],
-};
-
 // Scope para llamar a NUESTRA API. Debe empezar con api:// y usar el scope
 // que expusieron en Azure ("Expose an API"): access_as_user.
 export const apiRequest = {
   scopes: [`api://${import.meta.env.VITE_AZURE_CLIENT_ID}/access_as_user`],
+};
+
+// Scope para el LOGIN / perfil del usuario (Microsoft Graph). Además se pide
+// el consentimiento del scope de la API, para que después acquireTokenSilent
+// pueda obtener el token del BFF sin volver a pedir interacción.
+export const loginRequest = {
+  scopes: ['User.Read'],
+  extraScopesToConsent: apiRequest.scopes,
 };
