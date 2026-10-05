@@ -1,29 +1,31 @@
 import React from 'react';
-import { Card, DonutChart, Title, Text } from '@tremor/react';
-import './dashboard.css';
+import { Card, DonutChart, Title } from '@tremor/react';
 
-export default function ChartDonut({ summary }) {
-  const byUnit = summary?.byUnit || summary?.reservationsByUnit || {};
-
-  const chartData = Object.entries(byUnit).map(([unitId, count]) => ({
-    name: `Unidad ${unitId}`,
-    value: Number(count) || 0,
+const ChartDonut = ({ summary }) => {
+  const statusMap = summary?.byStatus || summary?.conteoPorEstado || {};
+  
+  const formattedData = Object.entries(statusMap).map(([status, count]) => ({
+    name: status,
+    value: Number(count) || 0
   }));
 
   return (
     <Card className="borde">
-      <Title>Reservas por Unidad</Title>
-      {chartData.length > 0 ? (
-        <DonutChart
-          data={chartData}
+      <Title>Reservas por Estado</Title>
+      {formattedData.length > 0 ? (
+        <DonutChart 
+          className="mt-6 h-52"
+          data={formattedData}
           category="value"
           index="name"
-          className="mt-6 h-52"
-          colors={['amber', 'indigo', 'emerald', 'rose', 'cyan', 'violet', 'fuchsia']}
+          variant="pie"
+          colors={['red','amber', 'indigo', 'emerald', 'blue', 'green']}
         />
       ) : (
-        <Text className="text-center text-muted my-6">Sin datos por unidad</Text>
+        <p className="text-gray-500 text-sm mt-4 text-center">Sin datos de estados</p>
       )}
     </Card>
   );
-}
+};
+
+export default ChartDonut;
