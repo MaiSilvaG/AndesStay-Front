@@ -103,9 +103,11 @@ function ReservasEditar() {
   const getBadgeVariant = (status) => {
     switch (status) {
       case 'CONFIRMADA':
-      case 'EN_ESTADIA':
         return 'success';
+      case 'EN_ESTADIA':
+        return 'primary';
       case 'CREADA':
+        return 'secondary';
       case 'CHECKIN_PENDIENTE':
         return 'warning';
       case 'CANCELADA':

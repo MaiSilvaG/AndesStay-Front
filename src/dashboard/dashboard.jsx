@@ -15,16 +15,37 @@ export default function Dashboard() {
       ? import.meta.env.VITE_API_URL
       : `${import.meta.env.VITE_API_URL}/`;
 
-    const REPORT_API_URL = `${baseUrl}api/reports/summary`;
+    const RESERVATIONS_API_URL = `${baseUrl}api/reservations`;
 
-    fetchWithToken(REPORT_API_URL)
+    fetchWithToken(RESERVATIONS_API_URL)
       .then((data) => {
-        setReportData(data && typeof data === "object" ? data : {});
-        setLoading(false);
+        const rawList = Array.isArray(data)
+          ? data
+          : (data?.reservations ?? data?.data ?? data?.content ?? []);
+        
+        const byStatus = rawList.reduce((acc, item) => {
+          const status = item.status || "DESCONOCIDO";
+          acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {});
+        
+        const summary = {
+          totalReservations: rawList.length,
+          byStatus: byStatus,
+          activeStays: byStatus.EN_ESTADIA || 0,
+        };
+
+        setReportData(summary);
       })
       .catch((err) => {
-        console.error("Error al obtener resumen de reportería:", err);
-        setReportData({});
+        console.error("Error al obtener reservas para el dashboard:", err);
+        setReportData({
+          totalReservations: 0,
+          byStatus: {},
+          activeStays: 0,
+        });
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, []);

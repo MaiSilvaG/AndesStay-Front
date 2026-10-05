@@ -24,21 +24,21 @@ export default function CardGridMap({ summary }) {
       metric: String(totalReservas),
       progress: totalReservas > 0 ? 100 : 0,
       target: "Total registradas",
-      color: "indigo"
+      color: "green"
     },
     {
       title: "Estadías Activas",
       metric: String(enEstadia),
       progress: totalReservas > 0 ? Math.round((enEstadia / totalReservas) * 100) : 0,
       target: `${totalReservas} total`,
-      color: "emerald"
+      color: "blue"
     },
     {
       title: "Completadas (Check-Out)",
       metric: String(checkout),
       progress: totalReservas > 0 ? Math.round((checkout / totalReservas) * 100) : 0,
       target: `${totalReservas} total`,
-      color: "amber"
+      color: "slate"
     },
     {
       title: "Canceladas",

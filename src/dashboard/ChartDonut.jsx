@@ -19,7 +19,7 @@ const ChartDonut = ({ summary }) => {
           category="value"
           index="name"
           variant="pie"
-          colors={['red','amber', 'indigo', 'emerald', 'blue', 'green']}
+          colors={['indigo','green', 'amber', 'blue', 'slate', 'red']}
         />
       ) : (
         <p className="text-gray-500 text-sm mt-4 text-center">Sin datos de estados</p>
