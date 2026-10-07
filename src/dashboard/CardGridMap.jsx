@@ -50,7 +50,7 @@ export default function CardGridMap({ summary }) {
   ];
 
   return (
-    <Grid numItemsMd={2} numItemsLg={4} className="gap-6 mt-6">
+    <Grid numItemsMd={2} numItemsLg={4} className="gap-6 mt-6 mb-6">
       {cardsData.map((item) => (
         <Card key={item.title} className="borde">
           <Flex>

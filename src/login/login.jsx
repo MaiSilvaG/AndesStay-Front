@@ -3,6 +3,7 @@ import { InteractionStatus } from '@azure/msal-browser';
 import { loginRequest } from '../authConfig';
 import { ProtectedData } from '../ProtectedData';
 import './login.css';
+import { useEffect } from 'react';
 
 export default function Login() {
   const { instance, accounts, inProgress } = useMsal();
@@ -31,6 +32,14 @@ export default function Login() {
   const handleLogout = () => {
     instance.logoutRedirect({ postLogoutRedirectUri: '/login' }).catch((e) => console.error(e));
   };
+
+  //guarda correo e id
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      const userIdentifier = currentUser.idTokenClaims?.oid || currentUser.username;
+      localStorage.setItem('guest_id', userIdentifier);
+    }
+  }, [isAuthenticated, currentUser]);
 
   return (
     <div className="login-wrapper">

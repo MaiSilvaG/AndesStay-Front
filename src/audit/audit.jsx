@@ -2,6 +2,7 @@ import Table from 'react-bootstrap/Table';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import './audit.css';
 import { useState, useEffect } from 'react';
@@ -80,7 +81,7 @@ export default function Audit() {
         const list = raw
           .filter(Boolean)
           .map(normalizeEvent)
-          .sort((a, b) => toTime(b.occurred_at) - toTime(a.occurred_at)); // más recientes primero
+          .sort((a, b) => toTime(b.occurred_at) - toTime(a.occurred_at));
 
         setEvents(list);
       })
@@ -115,11 +116,51 @@ export default function Audit() {
     return matchGuest && matchTipoEstado && matchFecha;
   });
 
+  //funcion para exportar csv
+  const exportCSV = () => {
+    if(resultado.length === 0) return;
+
+    const headers = ['ID Evento', 'Huesped', 'Fecha', 'ID Reserva', 'ID Unidad', 'Tipo Evento', 'Estado'];
+
+    const rows = resultado.map((ev) => [
+      `"${ev.event_id ?? ''}"`,
+      `"${ev.guest_id ?? 'N/A'}"`,
+      `"${formatFecha(ev.occurred_at)}"`,
+      `"${ev.reservation_id ?? 'N/A'}"`,
+      `"${ev.unit_id ?? 'N/A'}"`,
+      `"${ev.type ?? 'N/A'}"`,
+      `"${ev.status ?? 'N/A'}"`,
+    ]);
+
+     //uFEFF permite caracteres especiales y tilde en excel
+    const csvContenido = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContenido], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    const fechaActual = new Date().toISOString().split('T')[0];
+    link.href = url;
+    link.setAttribute('download', `auditoria_${fechaActual}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="m-5">
       <h1 className="mb-4">Trazabilidad de la reserva</h1>
+      <Button
+        variant="outline-success" 
+        onClick={exportCSV}
+        disabled={resultado.length === 0 || loading}
+        className='mb-4'
+      >
+        <i className="bi bi-file-earmark-spreadsheet me-2"></i>
+        Exportar CSV
+      </Button>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+      {error && <div className="alert alert-danger mb-4">{error}</div>}
 
       <Row className="g-4">
         {/* Tabla de Resultados */}

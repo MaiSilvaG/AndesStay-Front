@@ -22,7 +22,7 @@ export default function BarListDash({ summary }) {
   return (
     <Card className="borde">
       <Title>Reservas por Estado</Title>
-      <div className="mt-4">
+      <div className="mt-6">
         {listData.length > 0 ? (
           <BarList data={listData} sortOrder="descending" className="barra" />
         ) : (

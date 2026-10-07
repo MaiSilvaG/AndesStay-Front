@@ -10,3 +10,19 @@
 .barra{
     margin-top: 20px;
 }
+
+.color_header{
+    background-color: rgb(203, 215, 226);
+}
+
+.tabla_custom table {
+    border-collapse: collapse !important;
+    width: 100%;
+}
+
+.bordes{
+    border: 1px solid #000000;
+    padding: 12px 16px;
+    text-align: left;
+    vertical-align: middle;
+}

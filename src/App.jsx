@@ -1,17 +1,27 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './navbar/navbar';
 import Catalog from './catalog/catalog'; 
-import CatalogCliente from './catalog/catalogCliente'; 
+import CatalogCliente from './catalog/catalogCliente';
 import Dashboard from './dashboard/dashboard';
+import RecepcionistaDashboard from './dashboard/dashboardRecepcionista';
 import Audit from './audit/audit';
-import Reports from './reports/reports';
 import Login from './login/login';
 import Formulario from './reservations/formulario';
 import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
 import { ProtectedRoute } from './ProtectedRoute';
+import { useMsal } from '@azure/msal-react';
 
 function App() {
+  const { instance, accounts } = useMsal();
+
+  //obtener la cuenta activa
+  const activeAccount = instance.getActiveAccount();
+  const guestId =
+    activeAccount?.idTokenClaims?.oid ||
+    activeAccount?.idTokenClaims?.sub ||
+    activeAccount?.localAccountId;
+
   return (
     <BrowserRouter>
       <Navigation />
@@ -23,12 +33,22 @@ function App() {
         {/* login: publico */}
         <Route path="/login" element={<Login />} />
 
-        {/* dashboard: todos los autenticados*/}
+        {/* dashboard: admin*/}
         <Route 
           path="/dashboard" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['Admin']}>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* dashboard: recepcionis*/}
+        <Route 
+          path="/dashboardRecepcionista" 
+          element={
+            <ProtectedRoute allowedRoles={['Recepcionista']}>
+              <RecepcionistaDashboard />
             </ProtectedRoute>
           } 
         />
@@ -38,7 +58,7 @@ function App() {
           path="/reservasCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <ReservasCliente />
+              <ReservasCliente guestIdAuth={guestId}/>
             </ProtectedRoute>
           } 
         />
@@ -63,7 +83,7 @@ function App() {
           } 
         />
 
-        {/* catalog: Recepcionista y Admin */}
+        {/* catalog: Recepcionista y Admin  */}
         <Route 
           path="/catalog" 
           element={
@@ -72,28 +92,17 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        
-        {/* catalogCliente: Cliente */}
-        *<Route 
+
+        {/* catalog:  Cliente */}
+        <Route 
           path="/catalogCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <CatalogCliente />
+              <CatalogCliente/>
             </ProtectedRoute>
           } 
         />
         
-
-        {/* reports: Admin */}
-        <Route 
-          path="/reports" 
-          element={
-            <ProtectedRoute allowedRoles={['Admin']}>
-              <Reports />
-            </ProtectedRoute>
-          } 
-        />
-
         {/* audit: Auditor */}
         <Route 
           path="/audit" 

@@ -17,14 +17,14 @@ const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/')
 
 const API_URL = `${baseUrl}api/reservations`;
 
-const ESTADOS = [
-  'CREADA',
-  'CONFIRMADA',
-  'CHECKIN_PENDIENTE',
-  'EN_ESTADIA',
-  'CHECKOUT',
-  'CANCELADA',
-];
+const flujo = {
+  CREADA: ['CONFIRMADA', 'CANCELADA'],
+  CONFIRMADA: ['CHECKIN_PENDIENTE', 'CANCELADA'],
+  CHECKIN_PENDIENTE: ['EN_ESTADIA', 'CANCELADA'],
+  EN_ESTADIA: ['CHECKOUT'],
+  CHECKOUT: [], // Estado final
+  CANCELADA: [], // Estado final
+};
 
 const formatDate = (value) => {
   if (!value) return 'N/A';
@@ -119,6 +119,12 @@ function ReservasEditar() {
     }
   };
 
+  //funcion para el flujo
+  const opcionesEstado = (estadoActual) => {
+    const siguientes = flujo[estadoActual] || [];
+    return [estadoActual, ...siguientes];
+  };
+
   return (
     <div className="m-5">
       <h2>Administración de Reservas</h2>
@@ -150,33 +156,38 @@ function ReservasEditar() {
                   </thead>
                   <tbody>
                     {reservas.length > 0 ? (
-                      reservas.map((item) => (
-                        <tr key={item.id}>
-                          <td><strong>#{item.id}</strong></td>
-                          <td><code>{item.guest_id ?? 'N/A'}</code></td>
-                          <td>{item.guest_name ?? 'N/A'}</td>
-                          <td>Unidad #{item.unit_id ?? 'N/A'}</td>
-                          <td>{formatDate(item.check_in_date)}</td>
-                          <td>{formatDate(item.check_out_date)}</td>
-                          <td>
-                            <Badge bg={getBadgeVariant(item.status)}>{item.status}</Badge>
-                          </td>
-                          <td>
-                            <Form.Select
-                              size="sm"
-                              value={item.status}
-                              disabled={updatingId === item.id}
-                              onChange={(e) => handleEstadoChange(item.id, e.target.value)}
-                            >
-                              {ESTADOS.map((estado) => (
-                                <option key={estado} value={estado}>
-                                  {estado}
-                                </option>
-                              ))}
-                            </Form.Select>
-                          </td>
-                        </tr>
-                      ))
+                      reservas.map((item) => {
+                        const opciones = opcionesEstado(item.status);
+                        const estadoFinal = opciones.length === 1;
+
+                        return (
+                          <tr key={item.id}>
+                            <td><strong>#{item.id}</strong></td>
+                            <td><code>{item.guest_id ?? 'N/A'}</code></td>
+                            <td>{item.guest_name ?? 'N/A'}</td>
+                            <td>Unidad #{item.unit_id ?? 'N/A'}</td>
+                            <td>{formatDate(item.check_in_date)}</td>
+                            <td>{formatDate(item.check_out_date)}</td>
+                            <td>
+                              <Badge bg={getBadgeVariant(item.status)}>{item.status}</Badge>
+                            </td>
+                            <td>
+                              <Form.Select
+                                size="sm"
+                                value={item.status}
+                                disabled={updatingId === item.id || estadoFinal}
+                                onChange={(e) => handleEstadoChange(item.id, e.target.value)}
+                              >
+                                {opciones.map((estado) => (
+                                  <option key={estado} value={estado}>
+                                    {estado}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="8" className="text-center text-muted py-3">

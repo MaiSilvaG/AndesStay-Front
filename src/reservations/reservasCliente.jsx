@@ -22,7 +22,6 @@ const formatDate = (value) => {
   return y && m && d ? `${d}-${m}-${y}` : 'N/A';
 };
 
-// Acepta snake_case y camelCase, y devuelve siempre snake_case
 const normalizeReserva = (r) => ({
   id: r.id,
   guest_id: r.guest_id ?? r.guestId,
@@ -33,101 +32,204 @@ const normalizeReserva = (r) => ({
   status: r.status,
 });
 
-function ReservasCliente() {
+function ReservasCliente({ guestIdAuth }) {
+  const navigate = useNavigate();
   const { fetchWithToken } = useApi();
+  const currentGuestId = guestIdAuth || localStorage.getItem('guest_id');
+
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
-  const navigate = useNavigate();
+  const [cancelar, setCancelar] = useState(null);
 
-  useEffect(() => {
-    fetchWithToken(API_URL)
-      .then((data) => {
-        const raw = Array.isArray(data)
-          ? data
-          : (data?.reservations ?? data?.data ?? data?.content ?? []);
+  const fetchReservasCliente = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg('');
 
-        const list = raw
-          .filter(Boolean)
-          .map(normalizeReserva)
-          .sort((a, b) => a.id - b.id);
+      const data = await fetchWithToken(API_URL);
+      const raw = Array.isArray(data)
+        ? data
+        : (data?.reservations ?? data?.data ?? data?.content ?? []);
 
-        setReservas(list);
-      })
-      .catch((err) => {
-        console.error('Error al obtener reservas:', err);
-        setErrorMsg('No se pudieron cargar tus reservas.');
-        setReservas([]);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+      const list = raw
+        .filter(Boolean)
+        .map(normalizeReserva)
+        .filter((r) => String(r.guest_id) === String(currentGuestId))
+        .sort((a, b) => b.id - a.id);
 
-  const getBadgeVariant = (status) => {
-    if (status === 'CANCELADA') return 'danger';
-    if (status === 'EN_ESTADIA' || status === 'CONFIRMADA') return 'success';
-    return 'primary';
+      setReservas(list);
+    } catch (err) {
+      console.error('Error al cargar las reservas:', err);
+      setErrorMsg('No se pudieron obtener sus reservas. Intente mas tarde.');
+      setReservas([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    if (currentGuestId) {
+      fetchReservasCliente();
+    } else {
+      setLoading(false);
+      setErrorMsg('No se identifico la sesion .');
+    }
+  }, [currentGuestId]);
+
+  const cancelarReserva = async(id) => {
+    const confirmacion = window.confirm(`¿Esta seguro que desea cancelar la reserva #${id}?`);
+    if(!confirmacion) return;
+
+    try{
+      setCancelar(id);
+      setErrorMsg('');
+
+      await fetchWithToken(`${API_URL}/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({status: 'CANCELADA'}),
+      });
+
+      //actualiza el estado local no recarla toda lista
+      setReservas((prev) =>
+        prev.map((res) => (res.id === id ? { ...res, status:'CANCELADA'}:res))
+      );
+    } catch(err){
+      setErrorMsg('No se pudo cancelar la reserva');
+    }
+    finally{
+      setCancelar(null);
+    }
+  };
+
+  const getBadgeVariant = (status) => {
+    switch (status) {
+      case 'CONFIRMADA': return 'success';
+      case 'EN_ESTADIA': return 'primary';
+      case 'CREADA': return 'secondary';
+      case 'CHECKIN_PENDIENTE': return 'warning';
+      case 'CANCELADA': return 'danger';
+      case 'CHECKOUT': return 'info';
+      default: return 'secondary';
+    }
+  };
+
+  const reservasActivas = reservas.filter((r) =>
+    ['CREADA', 'CONFIRMADA', 'CHECKIN_PENDIENTE', 'EN_ESTADIA'].includes(r.status)
+  ).length;
+
+  const puedeCancelar = (status) => 
+    ['CREADA', 'CONFIRMADA', 'CHECKIN_PENDIENTE'].includes(status);
+
   return (
-    <div className="m-5">
-      <h2>Mis Reservas</h2>
+    <div className="container my-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2>Mis Reservas</h2>
+        </div>
+        <Button variant="primary" className="shadow-sm" onClick={() => navigate('/formulario')}>
+          + Nueva Reserva
+        </Button>
+      </div>
 
-      {errorMsg && <Alert variant="danger" className="mt-3">{errorMsg}</Alert>}
+      {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
 
-      <Row className="mt-4">
-        <Col sm={10}>
-          <Card>
+      {/* Tarjetas de Resumen */}
+      <Row className="mb-4">
+        <Col md={3} className="mb-3 mb-md-0">
+          <Card className="shadow-sm border-0 bg-primary text-white">
             <Card.Body>
-              {loading ? (
-                <div className="text-center my-4">
-                  <Spinner animation="border" variant="primary" />
-                </div>
-              ) : (
-                <Table bordered hover responsive className="align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th># ID</th>
-                      <th>Huésped</th>
-                      <th>Unidad</th>
-                      <th>Check-In</th>
-                      <th>Check-Out</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reservas.length > 0 ? (
-                      reservas.map((item) => (
-                        <tr key={item.id}>
-                          <td>#{item.id}</td>
-                          <td>{item.guest_name ?? 'N/A'}</td>
-                          <td>Unidad #{item.unit_id ?? 'N/A'}</td>
-                          <td>{formatDate(item.check_in_date)}</td>
-                          <td>{formatDate(item.check_out_date)}</td>
-                          <td>
-                            <Badge bg={getBadgeVariant(item.status)}>{item.status}</Badge>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="6" className="text-center text-muted py-3">
-                          Aún no tienes reservas.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-              )}
+              <h5>Reservas Activas</h5>
+              <h2 className="display-6 fw-bold mb-0">{reservasActivas}</h2>
             </Card.Body>
           </Card>
         </Col>
-
-        <Col sm={2}>
-          <Button variant="primary" className="w-100" onClick={() => navigate('/formulario')}>
-            Realizar Reserva
-          </Button>
+        <Col md={3}>
+          <Card className="shadow-sm border-0 bg-light">
+            <Card.Body>
+              <h5>Total de Reservas</h5>
+              <h2 className="display-6 fw-bold mb-0">{reservas.length}</h2>
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
+
+      {/* Tabla de Reservas */}
+      <Card className="shadow-sm border-0">
+        <Card.Body className="p-0">
+          {loading ? (
+            <div className="text-center my-5">
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-2 text-muted">Cargando tus reservas...</p>
+            </div>
+          ) : reservas.length > 0 ? (
+            <Table responsive hover className="align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th>N° Reserva</th>
+                  <th>Unidad</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th>Estado</th>
+                  <th className="text-center">Accion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reservas.map((item) => {
+                  const cancelable = puedeCancelar(item.status);
+                  const EsCacelar = cancelar === item.id;
+
+                  return (
+                    <tr key={item.id}>
+                      <td><strong>#{item.id}</strong></td>
+                      <td>Unidad #{item.unit_id ?? 'N/A'}</td>
+                      <td>{formatDate(item.check_in_date)}</td>
+                      <td>{formatDate(item.check_out_date)}</td>
+                      <td>
+                        <Badge bg={getBadgeVariant(item.status)} className="p-2">
+                          {item.status}
+                        </Badge>
+                      </td>
+                      <td className='text-center'>
+                        {cancelable ? (
+                          <Button
+                            variant='danger'
+                            size='sm'
+                            disabled={EsCacelar}
+                            onClick={() => cancelarReserva(item.id)}
+                          >
+                            {EsCacelar ? (
+                              <>
+                                <Spinner
+                                  as="span"
+                                  animation="border"
+                                  size="sm"
+                                  role="status"
+                                  aria-hidden="true"
+                                  className="me-1"
+                                />
+                                Cancelando...
+                              </>
+                            ) : (
+                              'Cancelar Reserva'
+                            )}
+                          </Button>
+                        ) : (
+                          <span className="text-muted small">N/A</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Table>
+          ) : (
+            <div className="text-center py-5">
+              <p className="text-muted mb-0">No tienes reservas registradas a tu nombre.</p>
+            </div>
+          )}
+        </Card.Body>
+      </Card>
     </div>
   );
 }

@@ -23,8 +23,15 @@ function Navigation() {
         <Nav className="me-auto">
           {isAuthenticated && (
             <>
-              {/* dashboard: todos los autenticados */}
-              <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
+              {/* dashboard: admin */}
+              {isAdmin && (
+                <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
+              )}
+
+              {/* dashboard: recepcionista */}
+              {isRecepcion && (
+                <Nav.Link as={Link} to="/dashboardRecepcionista">Dashboard</Nav.Link>
+              )}
 
               {/*reservasCliente: Cliente */}
               {isCliente && !isRecepcion && !isAdmin && (
@@ -40,14 +47,10 @@ function Navigation() {
               {(isAdmin || isRecepcion) && (
                 <Nav.Link as={Link} to="/catalog">Catalog</Nav.Link>
               )}
-              {/*CatalogCliente: Cliente */}
-              {isCliente && (
-                <Nav.Link as={Link} to="/catalogCliente">Catalog</Nav.Link>
-              )}
 
-              {/* Reportes: Admin */}
-              {isAdmin && (
-                <Nav.Link as={Link} to="/reports">Reports</Nav.Link>
+              {/* Catálogo:  Cliente */}
+              {(isCliente) && (
+                <Nav.Link as={Link} to="/catalogCliente">Catalog</Nav.Link>
               )}
 
               {/* Auditoría: Admin, Auditor */}
