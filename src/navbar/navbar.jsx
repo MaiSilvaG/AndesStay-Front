@@ -53,6 +53,7 @@ function Navigation() {
                 <Nav.Link as={Link} to="/catalogCliente">Catalog</Nav.Link>
               )}
 
+
               {/* Auditoría: Admin, Auditor */}
               {(isAdmin || isAuditor) && (
                 <Nav.Link as={Link} to="/audit">Audit</Nav.Link>
@@ -60,8 +61,19 @@ function Navigation() {
             </>
           )}
         </Nav>
-
-        <Nav className="ms-auto me-4">
+        
+        <Nav className="ms-auto me-4 d-flex align-items-center">
+          {isAuthenticated && isCliente && (
+            <Nav.Link as={Link} to="/notificacion">
+              <img
+                src='/campana.png'
+                alt='notificaciones'
+                width='22'
+                height='22'
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
+            </Nav.Link>
+          )}
           <Nav.Link as={Link} to="/login">
             {isAuthenticated ? 'Mi Cuenta' : 'Login'}
           </Nav.Link>

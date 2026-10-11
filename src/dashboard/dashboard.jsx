@@ -79,7 +79,7 @@ export default function Dashboard() {
 
   return (
     <main className="p-6 sm:p-10 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <h1 className="mb-6">Dashboard</h1>
 
       <CardGridMap summary={reportData} />
 

@@ -85,8 +85,8 @@ function ReservasCliente({ guestIdAuth }) {
       setCancelar(id);
       setErrorMsg('');
 
-      await fetchWithToken(`${API_URL}/${id}/status`, {
-        method: 'PUT',
+      await fetchWithToken(`${API_URL}/${id}/cancel`, {
+        method: 'POST',
         body: JSON.stringify({status: 'CANCELADA'}),
       });
 
@@ -125,7 +125,7 @@ function ReservasCliente({ guestIdAuth }) {
     <div className="container my-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2>Mis Reservas</h2>
+          <h1>Mis Reservas</h1>
         </div>
         <Button variant="primary" className="shadow-sm" onClick={() => navigate('/formulario')}>
           + Nueva Reserva

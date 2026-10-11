@@ -80,7 +80,7 @@ export default function RecepcionistaDashboard() {
   return (
     <Container className="my-5">
       <div className="mb-4">
-        <h2>Dashboard</h2>
+        <h1>Dashboard</h1>
       </div>
 
       {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}

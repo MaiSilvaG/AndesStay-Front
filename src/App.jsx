@@ -9,6 +9,7 @@ import Login from './login/login';
 import Formulario from './reservations/formulario';
 import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
+import Notificacion from './notificacion/notificacion';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useMsal } from '@azure/msal-react';
 
@@ -28,7 +29,7 @@ function App() {
 
       <Routes>
 
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         
         {/* login: publico */}
         <Route path="/login" element={<Login />} />
@@ -102,6 +103,16 @@ function App() {
             </ProtectedRoute>
           } 
         />
+
+        {/* notificaciones:  Cliente */}
+        <Route 
+          path="/notificacion" 
+          element={
+            <ProtectedRoute allowedRoles={['Cliente']}>
+              <Notificacion guestIdAuth={guestId}/>
+            </ProtectedRoute >
+          } 
+        />
         
         {/* audit: Auditor */}
         <Route 
@@ -113,8 +124,10 @@ function App() {
           } 
         />
 
+        
+
         {/* por defecto */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

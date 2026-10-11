@@ -34,16 +34,19 @@ export function useApi() {
       });
 
       if (!res.ok) {
-        // Intentar obtener el mensaje de error que devuelva el backend
         const errorData = await res.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Error ${res.status}: Falló la petición a la API.`
         );
       }
 
-      // 4. Si la respuesta es 204 No Content o no tiene cuerpo, retornar objeto/array vacío
       if (res.status === 204) {
         return null;
+      }
+
+      // 4. Soporte para Blob (archivos binarios como PDFs)
+      if (options.responseType === "blob") {
+        return await res.blob();
       }
 
       const contentType = res.headers.get("content-type");

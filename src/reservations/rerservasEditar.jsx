@@ -127,7 +127,7 @@ function ReservasEditar() {
 
   return (
     <div className="m-5">
-      <h2>Administración de Reservas</h2>
+      <h1>Administración de Reservas</h1>
 
       {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
 

@@ -149,7 +149,7 @@ export default function Audit() {
 
   return (
     <div className="m-5">
-      <h1 className="mb-4">Trazabilidad de la reserva</h1>
+      <h1 className="mb-4">Trazabilidad de las Reserva</h1>
       <Button
         variant="outline-success" 
         onClick={exportCSV}
