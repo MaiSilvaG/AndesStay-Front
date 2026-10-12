@@ -14,7 +14,7 @@ const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/')
 
 const API_URL = `${baseUrl}api/notifications`;
 
-export default function Notificaciones() {
+export default function NotificacionCliente() {
   const { fetchWithToken } = useApi();
   const [notificaciones, setNotificaciones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +76,6 @@ export default function Notificaciones() {
     }
 
     try {
-      // fetchWithToken inyectará automáticamente el token de MSAL y devolverá el Blob gracias al responseType
       const blob = await fetchWithToken(`${baseUrl}api/vouchers/${reservationId}`, {
         method: 'GET',
         headers: { Accept: 'application/pdf' },
@@ -112,7 +111,7 @@ export default function Notificaciones() {
         </div>
         {sinLeerCount > 0 && (
           <Button variant="outline-primary" size="sm" onClick={marcarTodasComoLeidas}>
-            <i className="bi bi-check2-all me-1"></i> Marcar todas como leídas
+            <i className="bi bi-check2-all me-1"></i> Marcar todas como leidas
           </Button>
         )}
       </div>

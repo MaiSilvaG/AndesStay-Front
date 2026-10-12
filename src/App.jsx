@@ -9,7 +9,8 @@ import Login from './login/login';
 import Formulario from './reservations/formulario';
 import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
-import Notificacion from './notificacion/notificacion';
+import NotificacionCliente from './notificacion/notificacionCliente';
+import NotificacionPersonal from './notificacion/notificacionPersonal';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useMsal } from '@azure/msal-react';
 
@@ -106,10 +107,20 @@ function App() {
 
         {/* notificaciones:  Cliente */}
         <Route 
-          path="/notificacion" 
+          path="/notificacionCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <Notificacion guestIdAuth={guestId}/>
+              <NotificacionCliente guestIdAuth={guestId}/>
+            </ProtectedRoute >
+          } 
+        />
+
+        {/* notificaciones:  admin y recepcionista */}
+        <Route 
+          path="/notificacionPersonal" 
+          element={
+            <ProtectedRoute allowedRoles={['Admin', 'Recepcionista']}>
+              <NotificacionPersonal guestIdAuth={guestId}/>
             </ProtectedRoute >
           } 
         />

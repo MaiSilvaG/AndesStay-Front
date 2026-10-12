@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Table from 'react-bootstrap/Table';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
@@ -48,7 +48,16 @@ function ReservasEditar() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+  const [sortOrden, setSortOrden] = useState('asc');
   const navigate = useNavigate();
+
+  const reservasOrdenadas = useMemo(
+    () =>
+      [...reservas].sort((a, b) =>
+        sortOrden === 'asc' ? a.id - b.id : b.id - a.id
+      ),
+    [reservas, sortOrden]
+  );
 
   const fetchReservas = async () => {
     try {
@@ -60,10 +69,7 @@ function ReservasEditar() {
         ? data
         : (data?.reservations ?? data?.data ?? data?.content ?? []);
 
-      const list = raw
-        .filter(Boolean)
-        .map(normalizeReserva)
-        .sort((a, b) => a.id - b.id);
+      const list = raw.filter(Boolean).map(normalizeReserva);
 
       setReservas(list);
     } catch (err) {
@@ -144,7 +150,14 @@ function ReservasEditar() {
                 <Table bordered hover responsive className="align-middle">
                   <thead className="table-light">
                     <tr>
-                      <th>ID</th>
+                      <th
+                        style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+                        onClick={() =>
+                          setSortOrden((o) => (o === 'asc' ? 'desc' : 'asc'))
+                        }
+                      >
+                        ID <span>{sortOrden === 'asc' ? '▲' : '▼'}</span>
+                      </th>
                       <th>ID Huésped</th>
                       <th>Nombre</th>
                       <th>Unidad</th>
@@ -155,8 +168,8 @@ function ReservasEditar() {
                     </tr>
                   </thead>
                   <tbody>
-                    {reservas.length > 0 ? (
-                      reservas.map((item) => {
+                    {reservasOrdenadas.length > 0 ? (
+                      reservasOrdenadas.map((item) => {
                         const opciones = opcionesEstado(item.status);
                         const estadoFinal = opciones.length === 1;
 

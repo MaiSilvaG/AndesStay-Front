@@ -13,9 +13,15 @@ function Navigation() {
   const isCliente = roles.includes('Cliente');
   const isAuditor = roles.includes('Auditor');
 
+  const home = isAdmin ? '/dashboard'
+  : isRecepcion ? '/dashboardRecepcionista'
+  : isCliente ? '/catalogCliente'
+  : '/audit';
+
+
   return (
     <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
-      <Navbar.Brand as={Link} to="/dashboard" className="ms-3">
+      <Navbar.Brand as={Link} to={home} className="ms-3">
         AndesStay
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
@@ -43,18 +49,17 @@ function Navigation() {
                 <Nav.Link as={Link} to="/reservasEditar">Reservations</Nav.Link>
               )}
 
-              {/* Catálogo: Admin, Recepcionista */}
+              {/* Catalogo: Admin, Recepcionista */}
               {(isAdmin || isRecepcion) && (
                 <Nav.Link as={Link} to="/catalog">Catalog</Nav.Link>
               )}
 
-              {/* Catálogo:  Cliente */}
-              {(isCliente) && (
+              {/* Catalogo:  Cliente */}
+              {isCliente && !isAdmin && !isRecepcion && (
                 <Nav.Link as={Link} to="/catalogCliente">Catalog</Nav.Link>
               )}
 
-
-              {/* Auditoría: Admin, Auditor */}
+              {/* Auditoria: Admin, Auditor */}
               {(isAdmin || isAuditor) && (
                 <Nav.Link as={Link} to="/audit">Audit</Nav.Link>
               )}
@@ -63,8 +68,22 @@ function Navigation() {
         </Nav>
         
         <Nav className="ms-auto me-4 d-flex align-items-center">
-          {isAuthenticated && isCliente && (
-            <Nav.Link as={Link} to="/notificacion">
+          {/*notificaciones cliente */}
+          {isAuthenticated && isCliente && !isAdmin && !isRecepcion && (
+            <Nav.Link as={Link} to="/notificacionCliente">
+              <img
+                src='/campana.png'
+                alt='notificaciones'
+                width='22'
+                height='22'
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
+            </Nav.Link>
+          )}
+
+          {/*notificaciones admin y recepcionista */}
+          {isAuthenticated && (isAdmin || isRecepcion) && (
+            <Nav.Link as={Link} to="/notificacionPersonal">
               <img
                 src='/campana.png'
                 alt='notificaciones'

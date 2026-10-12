@@ -12,7 +12,6 @@ export function useApi() {
     }
 
     try {
-      // 1. Solicitar token silenciosamente
       const response = await instance.acquireTokenSilent({
         ...apiRequest,
         account: account,
@@ -20,14 +19,12 @@ export function useApi() {
 
       const token = response.accessToken;
 
-      // 2. Mezclar encabezados con el token Bearer
       const headers = {
         "Content-Type": "application/json",
         ...options.headers,
         Authorization: `Bearer ${token}`,
       };
 
-      // 3. Realizar la petición
       const res = await fetch(url, {
         ...options,
         headers,
@@ -43,12 +40,9 @@ export function useApi() {
       if (res.status === 204) {
         return null;
       }
-
-      // 4. Soporte para Blob (archivos binarios como PDFs)
       if (options.responseType === "blob") {
         return await res.blob();
       }
-
       const contentType = res.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         return await res.json();
