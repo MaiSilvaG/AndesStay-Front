@@ -177,7 +177,7 @@ export default function Audit() {
                 <Table bordered hover responsive className="align-middle mb-0">
                   <thead className="table-light">
                     <tr>
-                      <th>Huésped</th>
+                      <th>ID Huesped</th>
                       <th>Fecha</th>
                       <th>Reserva / Unidad</th>
                       <th>Evento</th>
@@ -229,14 +229,14 @@ export default function Audit() {
             <Card.Body>
               <Card.Title>Filtros</Card.Title>
 
-              <label htmlFor="guest">Por ID de huesped o reserva</label>
+              <label htmlFor="guest">Por ID de Huesped</label>
               <input
                 id="guest"
                 name="guest"
                 value={filters.guest}
                 onChange={handleFilterChange}
                 type="text"
-                placeholder="Ej: u-201"
+                placeholder="ID Huesped"
                 className="form-control mb-2"
               />
 
