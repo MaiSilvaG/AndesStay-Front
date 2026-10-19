@@ -63,6 +63,11 @@ function Navigation() {
               {(isAdmin || isAuditor) && (
                 <Nav.Link as={Link} to="/audit">Audit</Nav.Link>
               )}
+
+              {/* Administración de RabbitMQ: Admin */}
+              {isAdmin && (
+                <Nav.Link as={Link} to="/rabbitAdmin">RabbitMQ</Nav.Link>
+              )}
             </>
           )}
         </Nav>

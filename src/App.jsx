@@ -11,6 +11,7 @@ import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
 import NotificacionCliente from './notificacion/notificacionCliente';
 import NotificacionPersonal from './notificacion/notificacionPersonal';
+import RabbitAdmin from './rabbitAdmin/rabbitAdmin';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useMsal } from '@azure/msal-react';
 
@@ -125,6 +126,16 @@ function App() {
           } 
         />
         
+        {/* rabbitAdmin: administración de RabbitMQ, solo Admin */}
+        <Route 
+          path="/rabbitAdmin" 
+          element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <RabbitAdmin />
+            </ProtectedRoute>
+          } 
+        />
+
         {/* audit: Auditor */}
         <Route 
           path="/audit" 

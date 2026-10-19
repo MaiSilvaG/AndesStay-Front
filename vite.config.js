@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://1z9p0g8fn0.execute-api.us-east-1.amazonaws.com',
+        target: 'https://jfif2nhuq3.execute-api.us-east-1.amazonaws.com/',
         changeOrigin: true,
         secure: false,
       },

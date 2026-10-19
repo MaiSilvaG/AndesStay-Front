@@ -44,11 +44,15 @@ export function useApi() {
       if (!res.ok) {
         // Spring devuelve los errores como ProblemDetail (campo "detail")
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(
+        const apiError = new Error(
           errorData.detail ||
             errorData.message ||
             `Error ${res.status}: Falló la petición a la API.`
         );
+        // Código y cuerpo completos (ej. "errors" por campo en un 400)
+        apiError.status = res.status;
+        apiError.data = errorData;
+        throw apiError;
       }
 
       if (res.status === 204) {
