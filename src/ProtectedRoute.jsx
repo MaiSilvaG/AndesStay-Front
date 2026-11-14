@@ -1,6 +1,6 @@
 import { useIsAuthenticated } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
-import { useUserRoles } from './useUserRoles';
+import { rutaInicio, useUserRoles } from './useUserRoles';
 
 export function ProtectedRoute({ children, allowedRoles }) {
   const isAuthenticated = useIsAuthenticated();
@@ -10,8 +10,9 @@ export function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles || allowedRoles.length === 0) {
-    return children;
+  // Sin el rol requerido, a su propia pantalla de inicio (el back también lo bloquea)
+  if (allowedRoles?.length && !allowedRoles.some((rol) => userRoles.includes(rol))) {
+    return <Navigate to={rutaInicio(userRoles)} replace />;
   }
 
   return children;
