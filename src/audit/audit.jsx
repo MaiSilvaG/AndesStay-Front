@@ -1,40 +1,13 @@
-import Table from 'react-bootstrap/Table';
-import Card from 'react-bootstrap/Card';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
-import './audit.css';
-import { useState, useEffect } from 'react';
-import { useApi } from '../useApi';
-
-// Devuelve YYYY-MM-DD en hora local (para comparar con <input type="date">)
-const toLocalDate = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d)) return '';
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${d.getFullYear()}-${mm}-${dd}`;
-};
+import { useEffect, useState } from 'react';
+import { API, useApi } from '../useApi';
+import { Cargando, EstadoBadge } from '../ui/componentes';
+import { ESTADOS } from '../ui/dominio';
+import { diaISO, hoyISO } from '../ui/fechas';
 
 const formatFecha = (iso) => {
   if (!iso) return 'N/A';
   const d = new Date(iso);
   return isNaN(d) ? 'N/A' : d.toLocaleString('es-CL');
-};
-
-const estadoBadge = (status) => {
-  switch (status) {
-    case 'CANCELADA':
-      return 'bg-danger';
-    case 'CHECKOUT':
-      return 'bg-secondary';
-    case 'EN_ESTADIA':
-      return 'bg-success';
-    default:
-      return 'bg-primary';
-  }
 };
 
 const normalizeEvent = (e) => ({
@@ -66,13 +39,7 @@ export default function Audit() {
 
   // Consumo del backend
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/')
-      ? import.meta.env.VITE_API_URL
-      : `${import.meta.env.VITE_API_URL}/`;
-
-    const AUDIT_API_URL = `${baseUrl}api/audit/events?limit=50`;
-
-    fetchWithToken(AUDIT_API_URL)
+    fetchWithToken(`${API}/audit/events?limit=50`)
       .then((data) => {
         const raw = Array.isArray(data)
           ? data
@@ -87,7 +54,7 @@ export default function Audit() {
       })
       .catch((err) => {
         console.error('Error al obtener auditoria:', err);
-        setError('No se pudieron cargar los eventos de auditoria.');
+        setError(err.message || 'No se pudieron cargar los eventos de auditoría.');
         setEvents([]);
       })
       .finally(() => setLoading(false));
@@ -107,11 +74,9 @@ export default function Audit() {
       .toLowerCase()
       .includes(filters.guest.toLowerCase());
 
-    const matchTipoEstado = `${ev.type ?? ''} ${ev.status ?? ''}`
-      .toLowerCase()
-      .includes(filters.tipoEstado.toLowerCase());
+    const matchTipoEstado = !filters.tipoEstado || ev.status === filters.tipoEstado;
 
-    const matchFecha = !filters.fecha || toLocalDate(ev.occurred_at) === filters.fecha;
+    const matchFecha = !filters.fecha || diaISO(ev.occurred_at) === filters.fecha;
 
     return matchGuest && matchTipoEstado && matchFecha;
   });
@@ -138,7 +103,7 @@ export default function Audit() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
 
-    const fechaActual = new Date().toISOString().split('T')[0];
+    const fechaActual = hoyISO();
     link.href = url;
     link.setAttribute('download', `auditoria_${fechaActual}.csv`);
     document.body.appendChild(link);
@@ -147,123 +112,76 @@ export default function Audit() {
     URL.revokeObjectURL(url);
   };
 
+  const porDia = resultado.reduce((acc, ev) => {
+    (acc[diaISO(ev.occurred_at)] ??= []).push(ev);
+    return acc;
+  }, {});
+  const tituloDia = (iso) =>
+    iso ? new Date(`${iso}T12:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Sin fecha';
+
   return (
-    <div className="m-5">
-      <h1 className="mb-4">Trazabilidad de las Reserva</h1>
-      <Button
-        variant="outline-success" 
-        onClick={exportCSV}
-        disabled={resultado.length === 0 || loading}
-        className='mb-4'
-      >
-        <i className="bi bi-file-earmark-spreadsheet me-2"></i>
-        Exportar CSV
-      </Button>
+    <main className="as-page">
+      <div className="as-page-head">
+        <div>
+          <h1 className="as-page-title">Trazabilidad de reservas</h1>
+          <p className="as-page-lead">Cada cambio de estado queda registrado aquí, del más reciente al más antiguo.</p>
+        </div>
+        <button type="button" className="btn btn-outline-secondary" onClick={exportCSV} disabled={resultado.length === 0 || loading}>
+          Exportar CSV
+        </button>
+      </div>
 
-      {error && <div className="alert alert-danger mb-4">{error}</div>}
+      <form className="as-surface d-flex flex-wrap gap-3 align-items-end p-3" onSubmit={(e) => e.preventDefault()}>
+        <div style={{ flex: '1 1 180px' }}>
+          <label htmlFor="fecha" className="form-label">Fecha</label>
+          <input id="fecha" name="fecha" type="date" className="form-control" value={filters.fecha} onChange={handleFilterChange} />
+        </div>
+        <div style={{ flex: '1 1 180px' }}>
+          <label htmlFor="guest" className="form-label">ID de huésped o reserva</label>
+          <input id="guest" name="guest" type="text" className="form-control" value={filters.guest} onChange={handleFilterChange} />
+        </div>
+        <div style={{ flex: '1 1 180px' }}>
+          <label htmlFor="tipoEstado" className="form-label">Estado</label>
+          <select id="tipoEstado" name="tipoEstado" className="form-select" value={filters.tipoEstado} onChange={handleFilterChange}>
+            <option value="">Todos</option>
+            {Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+        <button type="button" className="btn btn-outline-secondary" onClick={() => setFilters({ guest: '', fecha: '', tipoEstado: '' })}>
+          Limpiar filtros
+        </button>
+      </form>
 
-      <Row className="g-4">
-        {/* Tabla de Resultados */}
-        <Col lg={8}>
-          <Card className="shadow-sm border-0">
-            <Card.Body>
-              {loading ? (
-                <div className="text-center my-4">
-                  <Spinner animation="border" role="status" variant="primary">
-                    <span className="visually-hidden">Cargando eventos...</span>
-                  </Spinner>
-                </div>
-              ) : (
-                <Table bordered hover responsive className="align-middle mb-0">
-                  <thead className="table-light">
-                    <tr>
-                      <th>ID Huesped</th>
-                      <th>Fecha</th>
-                      <th>Reserva / Unidad</th>
-                      <th>Evento</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {resultado.length > 0 ? (
-                      resultado.map((ev, index) => (
-                        <tr key={ev.event_id ?? index}>
-                          <td>{ev.guest_id || 'N/A'}</td>
-                          <td>{formatFecha(ev.occurred_at)}</td>
-                          <td>
-                            #{ev.reservation_id ?? 'N/A'} / Unidad {ev.unit_id ?? 'N/A'}
-                          </td>
-                          <td>
-                            <span
-                              className={`badge ${
-                                ev.type?.includes('created') ? 'bg-success' : 'bg-info text-dark'
-                              }`}
-                            >
-                              {ev.type || 'N/A'}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`badge ${estadoBadge(ev.status)}`}>
-                              {ev.status || 'N/A'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" className="text-center text-muted py-3">
-                          No se encontraron registros de auditoría.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
-        {/* Filtros */}
-        <Col xs={6} md={4}>
-          <Card>
-            <Card.Body>
-              <Card.Title>Filtros</Card.Title>
-
-              <label htmlFor="guest">Por ID de Huesped</label>
-              <input
-                id="guest"
-                name="guest"
-                value={filters.guest}
-                onChange={handleFilterChange}
-                type="text"
-                placeholder="ID Huesped"
-                className="form-control mb-2"
-              />
-
-              <label htmlFor="tipoEstado">Por Tipo de Estado</label>
-              <input
-                id="tipoEstado"
-                name="tipoEstado"
-                value={filters.tipoEstado}
-                onChange={handleFilterChange}
-                type="text"
-                placeholder="Tipo Estado"
-                className="form-control mb-2"
-              />
-
-              <label htmlFor="fecha">Por Fecha</label>
-              <input
-                id="fecha"
-                name="fecha"
-                value={filters.fecha}
-                onChange={handleFilterChange}
-                type="date"
-                className="form-control"
-              />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </div>
+      {loading ? (
+        <Cargando texto="Cargando eventos..." />
+      ) : resultado.length === 0 ? (
+        <div className="as-surface as-empty">No hay eventos con esos filtros. Solo se muestran los últimos 50.</div>
+      ) : (
+        <section aria-label="Eventos" className="as-surface px-4 pb-3">
+          {Object.entries(porDia).map(([dia, lista]) => (
+            <div key={dia} className="pt-3">
+              <h2 className="as-day-title text-capitalize mb-2">{tituloDia(dia)}</h2>
+              <ol className="list-unstyled m-0">
+                {lista.map((ev, index) => (
+                  <li key={ev.event_id ?? index} className="d-flex flex-wrap align-items-center gap-3 py-2 border-top">
+                    <span className="small as-muted" style={{ flex: '0 0 48px', fontVariantNumeric: 'tabular-nums' }}>
+                      {new Date(ev.occurred_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span style={{ flex: '1 1 260px' }}>
+                      Reserva n° {ev.reservation_id ?? '—'} · Unidad n° {ev.unit_id ?? '—'}
+                      <span className="small as-muted d-block">{ev.type}</span>
+                    </span>
+                    <span className="small as-muted text-break" style={{ flex: '0 1 280px' }}>Huésped {ev.guest_id || '—'}</span>
+                    <EstadoBadge status={ev.status} />
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </section>
+      )}
+    </main>
   );
 }
