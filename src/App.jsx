@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './navbar/navbar';
 import Catalog from './catalog/catalog'; 
-import CatalogCliente from './catalog/catalogCliente';
 import Dashboard from './dashboard/dashboard';
 import RecepcionistaDashboard from './dashboard/dashboardRecepcionista';
 import Audit from './audit/audit';
@@ -91,7 +90,7 @@ function App() {
           path="/catalog" 
           element={
             <ProtectedRoute allowedRoles={['Recepcionista', 'Admin']}>
-              <Catalog />
+              <Catalog personal />
             </ProtectedRoute>
           } 
         />
@@ -101,7 +100,7 @@ function App() {
           path="/catalogCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <CatalogCliente/>
+              <Catalog />
             </ProtectedRoute>
           } 
         />

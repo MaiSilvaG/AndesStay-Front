@@ -1,51 +1,27 @@
 import { useState } from "react";
+import { TIPOS } from "../ui/dominio";
 
-const FORM_INICIAL = {
-  name: "",
-  type: "LODGE",
-  location: "",
-  pricePerNight: "",
-  totalSlots: "",
-};
+const FORM_INICIAL = { name: "", type: "CABANA", location: "", pricePerNight: "", totalSlots: "4" };
 
-export default function CrearUnidad({ show, onClose, onSubmit }) {
+// Panel lateral del catálogo del personal para crear una unidad
+export default function CrearUnidad({ onClose, onSubmit }) {
   const [form, setForm] = useState(FORM_INICIAL);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  if (!show) return null;
+  const setCampo = (campo) => (e) => setForm((prev) => ({ ...prev, [campo]: e.target.value }));
 
-  const setCampo = (campo, valor) =>
-    setForm((prev) => ({ ...prev, [campo]: valor }));
-
-  const cerrar = () => {
-    if (saving) return;
-    setForm(FORM_INICIAL);
-    setError("");
-    onClose();
-  };
-
-  const handleSubmit = async (e) => {
+  const enviar = async (e) => {
     e.preventDefault();
-    setError("");
-
     const precio = Number(form.pricePerNight);
     const cupos = Number(form.totalSlots);
 
-    if (!form.name.trim() || !form.location.trim()) {
-      setError("Nombre y ubicación son obligatorios.");
-      return;
-    }
-    if (!(precio > 0)) {
-      setError("La tarifa debe ser mayor a 0.");
-      return;
-    }
-    if (!Number.isInteger(cupos) || cupos < 1) {
-      setError("Los cupos totales deben ser un entero mayor o igual a 1.");
-      return;
-    }
+    if (!form.name.trim() || !form.location.trim()) return setError("Nombre y ubicación son obligatorios.");
+    if (!(precio > 0)) return setError("La tarifa debe ser mayor a 0.");
+    if (!Number.isInteger(cupos) || cupos < 1) return setError("Los cupos totales deben ser un número entero desde 1.");
 
     setSaving(true);
+    setError("");
     try {
       await onSubmit({
         name: form.name.trim(),
@@ -53,112 +29,62 @@ export default function CrearUnidad({ show, onClose, onSubmit }) {
         location: form.location.trim(),
         pricePerNight: precio,
         totalSlots: cupos,
-        availableSlots: cupos, 
-        active: true,
       });
       setForm(FORM_INICIAL);
-      onClose();
     } catch (err) {
-      console.error("Error creando unidad:", err);
-      setError("No se pudo crear la unidad. Intenta nuevamente.");
+      setError(err.message || "No se pudo crear la unidad. Intenta nuevamente.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <>
-      <div className="modal fade show d-block" tabIndex="-1" role="dialog" aria-modal="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <form className="modal-content" onSubmit={handleSubmit}>
-            <div className="modal-header">
-              <h5 className="modal-title">Crear unidad</h5>
-              <button type="button" className="btn-close" onClick={cerrar} aria-label="Cerrar" />
-            </div>
-
-            <div className="modal-body">
-              {error && <div className="alert alert-danger py-2">{error}</div>}
-
-              <div className="mb-3">
-                <label className="form-label">Nombre</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={form.name}
-                  onChange={(e) => setCampo("name", e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="row g-3 mb-3">
-                <div className="col-6">
-                  <label className="form-label">Tipo</label>
-                  <select
-                    className="form-select"
-                    value={form.type}
-                    onChange={(e) => setCampo("type", e.target.value)}
-                  >
-                    <option value="LODGE">LODGE</option>
-                    <option value="CABANA">CABANA</option>
-                    <option value="CAMPING">CAMPING</option>
-                  </select>
-                </div>
-                <div className="col-6">
-                  <label className="form-label">Ubicación</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={form.location}
-                    onChange={(e) => setCampo("location", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="row g-3">
-                <div className="col-6">
-                  <label className="form-label">Tarifa por noche (CLP)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    className="form-control"
-                    value={form.pricePerNight}
-                    onChange={(e) => setCampo("pricePerNight", e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="col-6">
-                  <label className="form-label">Cupos totales</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    className="form-control"
-                    value={form.totalSlots}
-                    onChange={(e) => setCampo("totalSlots", e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-outline-secondary"
-                onClick={cerrar}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? "Guardando..." : "Crear unidad"}
-              </button>
-            </div>
-          </form>
+    <aside aria-label="Crear unidad" className="as-surface p-4 crear-unidad">
+      <form onSubmit={enviar} className="d-flex flex-column gap-3">
+        <div className="d-flex align-items-center justify-content-between">
+          <h2 className="as-section-title">Crear unidad</h2>
+          <button type="button" className="btn-close" onClick={onClose} aria-label="Cerrar" />
         </div>
-      </div>
-      <div className="modal-backdrop fade show" />
-    </>
+
+        {error && <div className="alert alert-danger m-0" role="alert">{error}</div>}
+
+        <div>
+          <label htmlFor="u-nombre" className="form-label">Nombre</label>
+          <input id="u-nombre" className="form-control" placeholder="Ej: Cabaña Ñirre" value={form.name} onChange={setCampo("name")} required />
+        </div>
+
+        <fieldset>
+          <legend className="form-label">Tipo</legend>
+          <div className="d-flex flex-wrap gap-2">
+            {Object.entries(TIPOS).map(([valor, { label }]) => (
+              <label key={valor} className={`as-chip ${form.type === valor ? "is-on" : ""}`}>
+                <input type="radio" name="tipo" value={valor} checked={form.type === valor} onChange={setCampo("type")} className="visually-hidden" />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div>
+          <label htmlFor="u-ubic" className="form-label">Ubicación</label>
+          <input id="u-ubic" className="form-control" placeholder="Ej: Pucón" value={form.location} onChange={setCampo("location")} required />
+        </div>
+
+        <div className="row g-3">
+          <div className="col-6">
+            <label htmlFor="u-tarifa" className="form-label">Tarifa por noche</label>
+            <input id="u-tarifa" type="number" min="1" className="form-control" placeholder="$ 0" value={form.pricePerNight} onChange={setCampo("pricePerNight")} required />
+          </div>
+          <div className="col-6">
+            <label htmlFor="u-cupos" className="form-label">Cupos totales</label>
+            <input id="u-cupos" type="number" min="1" step="1" className="form-control" value={form.totalSlots} onChange={setCampo("totalSlots")} required />
+          </div>
+        </div>
+
+        <button type="submit" className="btn btn-primary" disabled={saving}>
+          {saving ? "Creando..." : "Crear unidad"}
+        </button>
+      </form>
+    </aside>
   );
 }

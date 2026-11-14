@@ -1,77 +1,73 @@
-.catalog-card {
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #ffffff;
-  border: 2px solid #e0e0e0;
+.catalogo-cuerpo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
 }
 
-
-.catalog-img {
-  height: 350px;
-  object-fit: cover;
-  width: 100%;
+.catalogo-lista {
+  flex: 999 1 560px;
+  min-width: 0;
 }
 
-
-.card-body-catalog {
+.catalogo-filtros {
   padding: 24px;
   display: flex;
+  gap: 22px;
+}
+
+/* Cliente: rail a la izquierda que se apila en móvil */
+.catalogo-filtros.en-columna {
+  flex: 1 1 260px;
+  max-width: 300px;
   flex-direction: column;
+}
+
+/* Personal: una fila sobre la tabla */
+.catalogo-filtros.en-fila {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 18px 20px;
+}
+
+.catalogo-filtros.en-fila .filtro-buscar {
+  flex: 1 1 240px;
+}
+
+.catalogo-filtros fieldset {
+  margin: 0;
+}
+
+.as-chip {
+  display: inline-flex;
   align-items: center;
-  text-align: center;
-}
-
-.card-title-catalog {
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: #136f80;
-  margin-bottom: 4px;
-}
-
-.card-text-catalog {
-  color: #555555;
-  font-size: 1rem;
-  margin-bottom: 8px;
-}
-
-.card-price {
-  font-size: 1.1rem;
-  color: #2c3e50;
-  margin-bottom: 0;
-}
-
-
-.calendar-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.calendar-title {
-  font-size: 1rem;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--as-line-strong);
+  background: #fff;
+  color: var(--as-ink);
+  font-size: 14px;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 12px;
+  cursor: pointer;
 }
 
-.selected-date {
-  font-size: 0.9rem;
-  margin-bottom: 0;
+.as-chip.is-on {
+  background: var(--as-ink);
+  border-color: var(--as-ink);
+  color: var(--as-surface);
 }
 
-.react-calendar {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-family: inherit;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+.unidad-tipo {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  background: var(--as-surface);
+  color: var(--as-ink);
 }
 
-.react-calendar__tile--now {
-  background: #e6f7ff;
-}
-
-.react-calendar__tile--active {
-  background: #136f80 !important;
-  color: white !important;
+.crear-unidad {
+  flex: 1 1 300px;
+  max-width: 360px;
+  box-shadow: 0 0 0 2px var(--as-clay);
 }
