@@ -2,6 +2,10 @@ import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { apiRequest } from "./authConfig";
 
+const base = import.meta.env.VITE_API_URL ?? "";
+// Prefijo de todas las rutas del BFF: `${API}/reservations`
+export const API = `${base.replace(/\/$/, "")}/api`;
+
 export function useApi() {
   const { instance, accounts } = useMsal();
 

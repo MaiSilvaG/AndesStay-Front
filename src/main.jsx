@@ -6,6 +6,7 @@ import { msalConfig } from './authConfig';
 import App from './App.jsx';
 import "./index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './theme.css';
 
 const msalInstance = new PublicClientApplication(msalConfig);
 

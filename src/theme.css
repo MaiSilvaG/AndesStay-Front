@@ -1,0 +1,427 @@
+/*
+ * Tema "Refugio" de AndesStay.
+ * Se carga DESPUÉS de bootstrap.css (main.jsx): ajusta las variables de
+ * Bootstrap para que sus componentes tomen la paleta, y define unas pocas
+ * clases propias (prefijo .as-) para lo que Bootstrap no trae.
+ */
+
+:root {
+  /* Paleta: azul y verde salen del logo; terracota, del techo de las casas */
+  --as-ground: #efe4d2;
+  --as-surface: #fbf6ee;
+  --as-surface-2: #f5ecdd;
+  --as-line: #e0d2bc;
+  --as-line-strong: #d9c8ae;
+  --as-track: #e6d8c2;
+  --as-ink: #1f3a55;
+  --as-ink-2: #4a5d70;
+  --as-clay: #c2622f;
+  --as-clay-ink: #9e4426;
+  --as-forest: #3e6b4a;
+  --as-forest-ink: #2f5a3b;
+
+  --as-font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --as-font-body: "Figtree", system-ui, sans-serif;
+  --as-radius: 20px;
+
+  /* Bootstrap */
+  --bs-body-bg: var(--as-ground);
+  --bs-body-color: var(--as-ink);
+  --bs-body-font-family: var(--as-font-body);
+  --bs-secondary-color: var(--as-ink-2);
+  --bs-border-color: var(--as-line);
+  --bs-link-color-rgb: 31, 58, 85;
+  --bs-link-hover-color-rgb: 158, 68, 38;
+  --bs-focus-ring-color: rgba(194, 98, 47, 0.35);
+}
+
+body {
+  background: var(--as-ground);
+  color: var(--as-ink);
+}
+
+h1, h2, h3, .h1, .h2, .h3, .h4, .h5 {
+  font-family: var(--as-font-display);
+  font-weight: 700;
+  color: var(--as-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--as-clay);
+  outline-offset: 2px;
+}
+
+/* ---------- Layout de página ---------- */
+
+.as-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.as-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.as-page-title {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.as-page-lead {
+  margin: 10px 0 0;
+  font-size: 17px;
+  color: var(--as-ink-2);
+}
+
+.as-muted {
+  color: var(--as-ink-2);
+}
+
+.as-surface {
+  background: var(--as-surface);
+  border-radius: var(--as-radius);
+}
+
+.as-section-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.as-stat {
+  background: var(--as-surface);
+  border-radius: 22px;
+  padding: 22px 24px;
+}
+
+.as-stat-value {
+  margin: 6px 0 0;
+  font-family: var(--as-font-display);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.as-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.as-grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Subtítulo de un grupo por día (avisos, auditoría) */
+.as-day-title {
+  margin: 0;
+  font-family: var(--as-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--as-ink-2);
+}
+
+.as-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--as-ink-2);
+}
+
+/* ---------- Píldoras de estado y tipo ---------- */
+
+.as-pill {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.as-estado-CREADA { background: #eadfcb; color: var(--as-ink-2); }
+.as-estado-CONFIRMADA { background: #dce8dd; color: var(--as-forest-ink); }
+.as-estado-CHECKIN_PENDIENTE { background: #f6e1b8; color: #7a5310; }
+.as-estado-EN_ESTADIA { background: var(--as-ink); color: var(--as-surface); }
+.as-estado-CHECKOUT { background: #e3e8ee; color: #33475b; }
+.as-estado-CANCELADA { background: #f5d9cc; color: var(--as-clay-ink); }
+
+/* ---------- Barra de cupos / proporciones ---------- */
+
+.as-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.as-meter-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.as-meter-track {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--as-track);
+  overflow: hidden;
+}
+
+.as-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ---------- Navbar ---------- */
+
+.as-nav {
+  background: var(--as-surface);
+  border-bottom: 1px solid var(--as-line);
+}
+
+.as-nav .nav-link {
+  padding: 10px 16px !important;
+  border-radius: 999px;
+  color: var(--as-ink);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.as-nav .nav-link:hover {
+  color: var(--as-clay-ink);
+}
+
+.as-nav .nav-link.active {
+  background: var(--as-ink);
+  color: var(--as-surface);
+  font-weight: 600;
+}
+
+.as-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  background: var(--as-forest);
+  color: var(--as-surface);
+}
+
+.as-icon-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--as-line);
+  background: #fff;
+  color: var(--as-ink);
+  display: grid;
+  place-items: center;
+}
+
+.as-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--as-clay);
+  border: 2px solid #fff;
+}
+
+/* ---------- Tarjeta de unidad ---------- */
+
+.as-unit-card {
+  background: var(--as-surface);
+  border-radius: var(--as-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.as-unit-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+}
+
+.as-unit-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.as-unit-name {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.as-price {
+  margin: 0;
+  font-size: 15px;
+  color: var(--as-ink-2);
+}
+
+.as-price strong {
+  font-size: 20px;
+  color: var(--as-ink);
+}
+
+/* ---------- Tablas ---------- */
+
+.as-table-wrap {
+  background: var(--as-surface);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.as-table-wrap .table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: var(--as-surface-2);
+  margin: 0;
+  font-size: 15px;
+}
+
+.as-table-wrap thead th {
+  background: var(--as-surface-2);
+  color: var(--as-ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 0;
+  padding: 14px 12px;
+}
+
+.as-table-wrap td {
+  padding: 14px 12px;
+  border-color: #e8dcc8;
+  vertical-align: middle;
+}
+
+.as-table-wrap th:first-child,
+.as-table-wrap td:first-child { padding-left: 24px; }
+.as-table-wrap th:last-child,
+.as-table-wrap td:last-child { padding-right: 24px; }
+
+/* ---------- Bootstrap: botones, formularios, tarjetas, modales ---------- */
+
+.btn {
+  --bs-btn-border-radius: 999px;
+  --bs-btn-font-weight: 600;
+  --bs-btn-padding-x: 20px;
+  --bs-btn-padding-y: 10px;
+}
+
+.btn-sm {
+  --bs-btn-padding-x: 14px;
+  --bs-btn-padding-y: 8px;
+  --bs-btn-font-size: 14px;
+  --bs-btn-border-radius: 999px;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--as-clay);
+  --bs-btn-border-color: var(--as-clay);
+  --bs-btn-hover-bg: var(--as-clay-ink);
+  --bs-btn-hover-border-color: var(--as-clay-ink);
+  --bs-btn-active-bg: var(--as-clay-ink);
+  --bs-btn-active-border-color: var(--as-clay-ink);
+  --bs-btn-disabled-bg: var(--as-clay);
+  --bs-btn-disabled-border-color: var(--as-clay);
+}
+
+.btn-dark {
+  --bs-btn-bg: var(--as-ink);
+  --bs-btn-border-color: var(--as-ink);
+  --bs-btn-color: var(--as-surface);
+  --bs-btn-hover-bg: #172c41;
+  --bs-btn-hover-border-color: #172c41;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--as-ink);
+  --bs-btn-border-color: var(--as-line-strong);
+  --bs-btn-hover-bg: var(--as-surface-2);
+  --bs-btn-hover-color: var(--as-ink);
+  --bs-btn-hover-border-color: var(--as-line-strong);
+  --bs-btn-active-bg: var(--as-surface-2);
+  --bs-btn-active-color: var(--as-ink);
+  --bs-btn-disabled-color: var(--as-ink-2);
+  --bs-btn-disabled-border-color: var(--as-line);
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--as-clay-ink);
+  --bs-btn-border-color: var(--as-line-strong);
+  --bs-btn-hover-bg: #f5d9cc;
+  --bs-btn-hover-color: var(--as-clay-ink);
+  --bs-btn-hover-border-color: var(--as-clay-ink);
+  --bs-btn-active-bg: #f5d9cc;
+  --bs-btn-active-color: var(--as-clay-ink);
+}
+
+.form-control,
+.form-select {
+  min-height: 46px;
+  border-radius: 12px;
+  border-color: var(--as-line-strong);
+  color: var(--as-ink);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--as-clay);
+  box-shadow: 0 0 0 0.2rem rgba(194, 98, 47, 0.2);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-check-input:checked {
+  background-color: var(--as-clay);
+  border-color: var(--as-clay);
+}
+
+.card {
+  --bs-card-bg: var(--as-surface);
+  --bs-card-border-width: 0;
+  --bs-card-border-radius: var(--as-radius);
+  --bs-card-inner-border-radius: var(--as-radius);
+}
+
+.modal-content {
+  background: var(--as-surface);
+  border: 0;
+  border-radius: 24px;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--as-line);
+}
+
+.alert {
+  border-radius: 14px;
+}
+
+.spinner-border {
+  color: var(--as-clay);
+}
