@@ -1,172 +1,106 @@
-import React, { useState, useEffect } from "react";
-import {Container, Row, Col, Card, Table, Badge, Spinner, Alert,} from "react-bootstrap";
-import { useApi } from "../useApi";
-import './dashboard.css';
+import { useState } from 'react';
+import { useMsal } from '@azure/msal-react';
+import { useUnidades } from '../ui/useUnidades';
+import { useReservas } from '../ui/useReservas';
+import { Cargando, EstadoBadge } from '../ui/componentes';
+import { ACCION_HACIA, siguienteEstado } from '../ui/dominio';
+import { fechaCorta, hoyISO } from '../ui/fechas';
 
-const formatDate = (value) => {
-  if (!value) return "N/A";
-  const [y, m, d] = String(value).slice(0, 10).split("-");
-  return y && m && d ? `${d}-${m}-${y}` : "N/A";
-};
-
-const normalizeReserva = (r) => ({
-  id: r.id,
-  guest_id: r.guest_id ?? r.guestId,
-  guest_name: r.guest_name ?? r.guestName,
-  unit_id: r.unit_id ?? r.unitId,
-  check_in_date: r.check_in_date ?? r.checkInDate,
-  check_out_date: r.check_out_date ?? r.checkOutDate,
-  status: r.status,
-});
-
-const getBadgeVariant = (status) => {
-  switch (status) {
-    case "EN_ESTADIA":
-      return "success";
-    case "CHECKOUT":
-      return "danger";
-    default:
-      return "secondary";
-  }
-};
+// Pestañas del día. "Hoy" se calcula con la fecha local del navegador.
+const PESTANAS = [
+  { id: 'llegan', label: 'Llegan hoy', filtro: (r, hoy) => r.checkInDate === hoy && ['CONFIRMADA', 'CHECKIN_PENDIENTE'].includes(r.status) },
+  { id: 'estadia', label: 'En estadía', filtro: (r) => r.status === 'EN_ESTADIA' },
+  { id: 'salen', label: 'Salen hoy', filtro: (r, hoy) => r.checkOutDate === hoy && r.status === 'EN_ESTADIA' },
+];
 
 export default function RecepcionistaDashboard() {
-  const { fetchWithToken } = useApi();
-  const [reservas, setReservas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
+  const { instance } = useMsal();
+  const { porId } = useUnidades();
+  const { reservas, cargando, error, ocupada, cambiar } = useReservas();
+  const [pestana, setPestana] = useState('llegan');
+  const hoy = hoyISO();
 
-  useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL?.endsWith("/")
-      ? import.meta.env.VITE_API_URL
-      : `${import.meta.env.VITE_API_URL}/`;
+  const contar = (id) => reservas.filter((r) => PESTANAS.find((p) => p.id === id).filtro(r, hoy)).length;
+  const filas = reservas.filter((r) => PESTANAS.find((p) => p.id === pestana).filtro(r, hoy));
+  const nombre = instance.getActiveAccount()?.name?.split(' ')[0];
+  const fechaLarga = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
 
-    const API_URL = `${baseUrl}api/reservations`;
-
-    fetchWithToken(API_URL)
-      .then((data) => {
-        const rawList = Array.isArray(data)
-          ? data
-          : (data?.reservations ?? data?.data ?? data?.content ?? []);
-
-        const normalizedList = rawList.filter(Boolean).map(normalizeReserva);
-
-        const reservasRecepcion = normalizedList.filter(
-          (r) => r.status === "EN_ESTADIA" || r.status === "CHECKOUT"
-        );
-        setReservas(reservasRecepcion);
-      })
-      .catch((err) => {
-        console.error("Error al obtener las reservas:", err);
-        setErrorMsg("No se pudieron cargar las reservas.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  const enEstadiaCount = reservas.filter((r) => r.status === "EN_ESTADIA").length;
-  const checkoutCount = reservas.filter((r) => r.status === "CHECKOUT").length;
-
-  if (loading) {
-    return (
-      <Container className="d-flex flex-column align-items-center justify-content-center min-vh-100">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3 text-muted fw-medium">Cargando reservas de recepción...</p>
-      </Container>
-    );
-  }
+  if (cargando) return <main className="as-page"><Cargando texto="Cargando el día..." /></main>;
 
   return (
-    <Container className="my-5">
-      <div className="mb-4">
-        <h1>Dashboard</h1>
+    <main className="as-page">
+      <div>
+        <h1 className="as-page-title">Hola{nombre ? `, ${nombre}` : ''}</h1>
+        <p className="as-page-lead">Así están los huéspedes hoy, {fechaLarga}.</p>
       </div>
 
-      {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
-      <Row className="g-4 mb-4">
-        <Col sm={12} md={6}>
-          <Card className="border-0 shadow-sm border-start border-4 border-success">
-            <Card.Body>
-              <Card.Subtitle className="text-muted mb-2">
-                Reservas Activas
-              </Card.Subtitle>
-              <Card.Title className="fs-2 fw-bold m-0 text-success">
-                {enEstadiaCount}
-              </Card.Title>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col sm={12} md={6}>
-          <Card className="border-0 shadow-sm border-start border-4 border-danger">
-            <Card.Body>
-              <Card.Subtitle className="text-muted mb-2">
-                Check-Out
-              </Card.Subtitle>
-              <Card.Title className="fs-2 fw-bold m-0 text-danger">
-                {checkoutCount}
-              </Card.Title>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+      <div className="as-grid-stats">
+        <div className="as-stat" style={{ background: 'var(--as-forest)', color: 'var(--as-surface)' }}>
+          <p className="m-0">En estadía</p>
+          <p className="as-stat-value" style={{ color: 'inherit' }}>{contar('estadia')}</p>
+        </div>
+        <div className="as-stat">
+          <p className="m-0 as-muted">Llegan hoy</p>
+          <p className="as-stat-value">{contar('llegan')}</p>
+        </div>
+        <div className="as-stat">
+          <p className="m-0 as-muted">Salen hoy</p>
+          <p className="as-stat-value">{contar('salen')}</p>
+        </div>
+      </div>
 
-      {/* tabla reservas filtrada*/}
-      <Card className="border-0">
-        <Card.Header className="bg-white py-3">
-          <h5 className="m-0 font-weight-bold">
-            Reservas Activas y Check-Out ({reservas.length})
-          </h5>
-        </Card.Header>
-        <Card.Body className="p-0">
-          <Table bordered hover responsive className="m-0 align-middle">
-            <thead className="table-light">
+      <section aria-label="Huéspedes" className="as-table-wrap">
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 pt-4 pb-3">
+          <h2 className="as-section-title">Huéspedes</h2>
+          <div role="group" aria-label="Filtrar" className="d-flex gap-1 p-1 rounded-pill" style={{ background: 'var(--as-ground)' }}>
+            {PESTANAS.map((p) => (
+              <button key={p.id} type="button" aria-pressed={pestana === p.id}
+                className={`btn btn-sm ${pestana === p.id ? 'btn-dark' : 'btn-link text-decoration-none'}`}
+                onClick={() => setPestana(p.id)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="table-responsive">
+          <table className="table" style={{ minWidth: 760 }}>
+            <thead>
               <tr>
-                <th>ID</th>
-                <th>ID Huésped</th>
-                <th>Nombre</th>
-                <th>Unidad</th>
-                <th>Check-In</th>
-                <th>Check-Out</th>
-                <th className="text-center">Estado</th>
+                <th scope="col">Huésped</th>
+                <th scope="col">Unidad</th>
+                <th scope="col">Check-in</th>
+                <th scope="col">Check-out</th>
+                <th scope="col">Estado</th>
+                <th scope="col" className="text-end">Acción</th>
               </tr>
             </thead>
             <tbody>
-              {reservas.length > 0 ? (
-                reservas.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong>#{item.id}</strong>
-                    </td>
-                    <td>
-                      <code>{item.guest_id ?? "N/A"}</code>
-                    </td>
-                    <td>{item.guest_name ?? "N/A"}</td>
-                    <td>Unidad #{item.unit_id ?? "N/A"}</td>
-                    <td>{formatDate(item.check_in_date)}</td>
-                    <td>{formatDate(item.check_out_date)}</td>
-                    <td className="text-center">
-                      <Badge
-                        bg={getBadgeVariant(item.status)}
-                        className="rounded-pill px-3 py-2 text-uppercase"
-                      >
-                        {item.status}
-                      </Badge>
+              {filas.map((r) => {
+                const siguiente = siguienteEstado(r);
+                return (
+                  <tr key={r.id}>
+                    <td><strong className="fw-semibold">{r.guestName ?? '—'}</strong><br /><span className="small as-muted">Reserva n° {r.id}</span></td>
+                    <td>{porId.get(r.unitId)?.name ?? `Unidad n° ${r.unitId}`}</td>
+                    <td>{fechaCorta(r.checkInDate)}</td>
+                    <td>{fechaCorta(r.checkOutDate)}</td>
+                    <td><EstadoBadge status={r.status} /></td>
+                    <td className="text-end">
+                      {siguiente && (
+                        <button type="button" className="btn btn-primary btn-sm text-nowrap" disabled={ocupada === r.id} onClick={() => cambiar(r, siguiente)}>
+                          {ACCION_HACIA[siguiente]}
+                        </button>
+                      )}
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="text-center text-muted py-4">
-                    No hay reservas activas en estadia ni en check-out actualmente.
-                  </td>
-                </tr>
-              )}
+                );
+              })}
+              {filas.length === 0 && <tr><td colSpan="6" className="as-empty">No hay huéspedes en esta lista.</td></tr>}
             </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
-    </Container>
+          </table>
+        </div>
+      </section>
+    </main>
   );
 }
