@@ -3,7 +3,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import { Link } from 'react-router-dom';
 import { useIsAuthenticated } from '@azure/msal-react';
 import { useUserRoles } from '../useUserRoles';
-
+import './navbar.css';
 function Navigation() {
   const isAuthenticated = useIsAuthenticated();
   const roles = useUserRoles();
@@ -21,8 +21,12 @@ function Navigation() {
 
   return (
     <Navbar expand="lg" className="bg-body-tertiary" data-bs-theme="dark">
-      <Navbar.Brand as={Link} to={home} className="ms-3">
-        AndesStay
+      <Navbar.Brand as={Link} to={home}>
+        <img
+          src="/logo.png" 
+          alt="logo"
+          className="brand-logo"
+        />
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">

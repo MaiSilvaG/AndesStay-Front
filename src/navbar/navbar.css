@@ -1,0 +1,12 @@
+.brand-logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  margin-top: -10px;  
+  margin-bottom: -10px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.brand-logo:hover {
+  transform: scale(1.15); 
+}
