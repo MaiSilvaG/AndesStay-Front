@@ -8,22 +8,11 @@ import Login from './login/login';
 import Formulario from './reservations/formulario';
 import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
-import NotificacionCliente from './notificacion/notificacionCliente';
-import NotificacionPersonal from './notificacion/notificacionPersonal';
+import Notificaciones from './notificacion/Notificaciones';
 import RabbitAdmin from './rabbitAdmin/rabbitAdmin';
 import { ProtectedRoute } from './ProtectedRoute';
-import { useMsal } from '@azure/msal-react';
 
 function App() {
-  const { instance, accounts } = useMsal();
-
-  //obtener la cuenta activa
-  const activeAccount = instance.getActiveAccount();
-  const guestId =
-    activeAccount?.idTokenClaims?.oid ||
-    activeAccount?.idTokenClaims?.sub ||
-    activeAccount?.localAccountId;
-
   return (
     <BrowserRouter>
       <Navigation />
@@ -60,7 +49,7 @@ function App() {
           path="/reservasCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <ReservasCliente guestIdAuth={guestId}/>
+              <ReservasCliente />
             </ProtectedRoute>
           } 
         />
@@ -110,7 +99,7 @@ function App() {
           path="/notificacionCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <NotificacionCliente guestIdAuth={guestId}/>
+              <Notificaciones />
             </ProtectedRoute >
           } 
         />
@@ -120,7 +109,7 @@ function App() {
           path="/notificacionPersonal" 
           element={
             <ProtectedRoute allowedRoles={['Admin', 'Recepcionista']}>
-              <NotificacionPersonal guestIdAuth={guestId}/>
+              <Notificaciones />
             </ProtectedRoute >
           } 
         />

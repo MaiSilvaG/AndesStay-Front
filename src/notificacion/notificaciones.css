@@ -1,0 +1,33 @@
+.aviso {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-radius: 18px;
+}
+
+.aviso.sin-leer {
+  background: var(--as-surface);
+}
+
+.aviso-icono {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.aviso-icono.bueno { background: #dce8dd; color: var(--as-forest-ink); }
+.aviso-icono.malo { background: #f5d9cc; color: var(--as-clay-ink); }
+.aviso-icono.info { background: #e3e8ee; color: var(--as-ink); }
+
+.aviso-punto {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--as-clay);
+}
