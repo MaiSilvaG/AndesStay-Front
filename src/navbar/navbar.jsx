@@ -5,7 +5,8 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { rutaInicio, useUserRoles } from '../useUserRoles';
 import { API, useApi } from '../useApi';
-import logo from '../assets/logo.png';
+import logo from '../assets/AndesStay.png';
+import './navbar.css';
 
 function Campana() {
   return (
@@ -52,7 +53,7 @@ function Navigation() {
     <Navbar expand="lg" className="as-nav">
       <div className="container-xl px-4 py-2 gap-3">
         <Navbar.Brand as={Link} to={rutaInicio(roles)} aria-label="AndesStay, inicio">
-          <img src={logo} alt="" height="44" />
+          <img src={logo} alt="AndesStay"/>
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="nav-principal" />
@@ -63,12 +64,12 @@ function Navigation() {
               {isRecepcion && !isAdmin && (
                 <Nav.Link as={NavLink} to="/dashboardRecepcionista">Dashboard</Nav.Link>
               )}
-              {isCliente && <Nav.Link as={NavLink} to="/catalogCliente">Catálogo</Nav.Link>}
+              {isCliente && <Nav.Link as={NavLink} to="/catalogCliente">Catalogo</Nav.Link>}
               {isCliente && <Nav.Link as={NavLink} to="/reservasCliente">Mis reservas</Nav.Link>}
               {isPersonal && <Nav.Link as={NavLink} to="/reservasEditar">Reservas</Nav.Link>}
-              {isPersonal && <Nav.Link as={NavLink} to="/catalog">Catálogo</Nav.Link>}
-              {(isAdmin || isAuditor) && <Nav.Link as={NavLink} to="/audit">Auditoría</Nav.Link>}
-              {isAdmin && <Nav.Link as={NavLink} to="/rabbitAdmin">Mensajería</Nav.Link>}
+              {isPersonal && <Nav.Link as={NavLink} to="/catalog">Catalogo</Nav.Link>}
+              {(isAdmin || isAuditor) && <Nav.Link as={NavLink} to="/audit">Auditoria</Nav.Link>}
+              {isAdmin && <Nav.Link as={NavLink} to="/rabbitAdmin">Mensajeria</Nav.Link>}
             </Nav>
           )}
 

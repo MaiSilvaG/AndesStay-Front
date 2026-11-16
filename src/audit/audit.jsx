@@ -3,6 +3,7 @@ import { API, useApi } from '../useApi';
 import { Cargando, EstadoBadge } from '../ui/componentes';
 import { ESTADOS } from '../ui/dominio';
 import { diaISO, hoyISO } from '../ui/fechas';
+import Button from 'react-bootstrap/Button';
 
 const formatFecha = (iso) => {
   if (!iso) return 'N/A';
@@ -123,12 +124,11 @@ export default function Audit() {
     <main className="as-page">
       <div className="as-page-head">
         <div>
-          <h1 className="as-page-title">Trazabilidad de reservas</h1>
-          <p className="as-page-lead">Cada cambio de estado queda registrado aquí, del más reciente al más antiguo.</p>
+          <h1 className="as-page-title">Trazabilidad de Reservas</h1>
         </div>
-        <button type="button" className="btn btn-outline-secondary" onClick={exportCSV} disabled={resultado.length === 0 || loading}>
+        <Button type="button" variant="outline-success" onClick={exportCSV} disabled={resultado.length === 0 || loading}>
           Exportar CSV
-        </button>
+        </Button>
       </div>
 
       <form className="as-surface d-flex flex-wrap gap-3 align-items-end p-3" onSubmit={(e) => e.preventDefault()}>

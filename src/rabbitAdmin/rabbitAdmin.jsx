@@ -249,7 +249,7 @@ export default function RabbitAdmin() {
           </Button>
           {overview?.managementUrl && (
             <Button
-              variant="warning"
+              className="btn btn-primary"
               href={overview.managementUrl}
               target="_blank"
               rel="noopener noreferrer"

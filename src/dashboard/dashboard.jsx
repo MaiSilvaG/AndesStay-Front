@@ -7,13 +7,13 @@ import { ESTADOS } from '../ui/dominio';
 import { fechaCorta } from '../ui/fechas';
 
 // Color de cada estado en "Reservas por estado" (difieren también en luminosidad)
-const COLOR_ESTADO = {
-  CREADA: '#cdbb9c',
-  CONFIRMADA: 'var(--as-forest)',
-  CHECKIN_PENDIENTE: '#d9a441',
-  EN_ESTADIA: 'var(--as-ink)',
-  CHECKOUT: '#4a6378',
-  CANCELADA: 'var(--as-clay)',
+export const COLORES_ESTADO = {
+  CREADA: '#AA84B8',
+  CONFIRMADA: '#198754',
+  CHECKIN_PENDIENTE: '#ffc107',
+  EN_ESTADIA: '#0d6efd',
+  CHECKOUT: '#64748b',
+  CANCELADA: '#ef4444',
 };
 
 export default function Dashboard() {
@@ -30,10 +30,10 @@ export default function Dashboard() {
   const pct = (n) => (total ? `${Math.round((n / total) * 100)} % del total` : '—');
 
   const cifras = [
-    { titulo: 'Total de reservas', valor: total, nota: 'Todas las del sistema', color: 'var(--as-ink)', ratio: total },
-    { titulo: 'Estadías activas', valor: porEstado.EN_ESTADIA ?? 0, color: 'var(--as-forest)' },
-    { titulo: 'Completadas', valor: porEstado.CHECKOUT ?? 0, color: '#4a6378' },
-    { titulo: 'Canceladas', valor: porEstado.CANCELADA ?? 0, color: 'var(--as-clay)' },
+    { titulo: 'Total de reservas', valor: total, nota: 'Todas las del sistema', color: '#22c55e', ratio: total },
+    { titulo: 'Estadías activas', valor: porEstado.EN_ESTADIA ?? 0, color: '#3b82f6' },
+    { titulo: 'Completadas', valor: porEstado.CHECKOUT ?? 0, color: '#64748b' },
+    { titulo: 'Canceladas', valor: porEstado.CANCELADA ?? 0, color: '#ef4444' },
   ];
 
   if (cargando) return <main className="as-page"><Cargando texto="Cargando resumen..." /></main>;
@@ -67,7 +67,7 @@ export default function Dashboard() {
               <li key={k} className="d-grid align-items-center gap-3" style={{ gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr) 56px' }}>
                 <span className="fw-semibold">{label}</span>
                 <span className="as-meter-track" style={{ height: 28, borderRadius: 8, background: 'var(--as-ground)' }} aria-hidden="true">
-                  <span className="as-meter-fill" style={{ borderRadius: 8, width: `${((porEstado[k] ?? 0) / maxEstado) * 100}%`, background: COLOR_ESTADO[k] }} />
+                  <span className="as-meter-fill" style={{ borderRadius: 8, width: `${((porEstado[k] ?? 0) / maxEstado) * 100}%`, background: COLORES_ESTADO[k] }} />
                 </span>
                 <span className="text-end fw-semibold">{porEstado[k] ?? 0}</span>
               </li>

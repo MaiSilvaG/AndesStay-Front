@@ -37,7 +37,7 @@ export default function Login() {
             </div>
             <div className="as-surface p-4 d-flex flex-column gap-3">
               <Link to={rutaInicio(roles)} className="btn btn-primary">Ir al inicio</Link>
-              <button type="button" className="btn btn-outline-secondary" onClick={cerrarSesion}>
+              <button type="button" className="btn btn-outline-danger" onClick={cerrarSesion}>
                 Cerrar sesión
               </button>
             </div>
