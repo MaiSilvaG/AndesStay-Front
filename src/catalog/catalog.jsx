@@ -1,278 +1,189 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
-import "./catalog.css";
-import { useApi } from "../useApi";
+import { useMemo, useState } from "react";
+import { API, useApi } from "../useApi";
+import { useUnidades } from "../ui/useUnidades";
+import { Cargando, Cupos } from "../ui/componentes";
+import { TIPOS, formatoPrecio, fotoUnidad, tipoLabel } from "../ui/dominio";
 import CrearUnidad from "./CrearUnidad";
-import ReservaModal, { toISODate } from "./ReservaModal";
+import ReservaModal from "./ReservaModal";
+import "./catalog.css";
 
-const baseUrl = import.meta.env.VITE_API_URL?.endsWith("/")
-  ? import.meta.env.VITE_API_URL
-  : `${import.meta.env.VITE_API_URL}/`;
+const FILTROS_INICIALES = { texto: "", tipo: "", ubicacion: "", soloDisponibles: false };
 
-const API_URL = `${baseUrl}api/units`;
-
-const FILTROS_INICIALES = {
-  texto: "",
-  tipo: "TODOS",
-  ubicacion: "TODAS",
-  soloDisponibles: false,
-};
-
-export default function Catalog() {
+/**
+ * Catálogo de unidades. Cliente: tarjetas con filtros al costado.
+ * Personal (`personal`): tabla, más el panel para crear unidades.
+ */
+export default function Catalog({ personal = false }) {
   const { fetchWithToken } = useApi();
-  const navigate = useNavigate();
-  const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { unidades, cargando, error, recargar } = useUnidades();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
-  const [showCrear, setShowCrear] = useState(false);
-  const [reserva, setReserva] = useState(null); // { unit, checkInDate } | null
+  const [reservando, setReservando] = useState(null);
+  const [creando, setCreando] = useState(false);
 
-  const cargarUnidades = () =>
-    fetchWithToken(API_URL)
-      .then((data) => {
-        const safeData = Array.isArray(data) ? data : [];
-        setUnits(safeData.filter((unit) => unit?.active !== false));
-      })
-      .catch((err) => {
-        console.error("Error conectando con el microservicio:", err);
-        setUnits([]);
-      })
-      .finally(() => setLoading(false));
+  const ubicaciones = useMemo(
+    () => [...new Set(unidades.map((u) => u.location).filter(Boolean))].sort(),
+    [unidades]
+  );
 
-  useEffect(() => {
-    cargarUnidades();
-  }, []);
+  const visibles = useMemo(() => {
+    const texto = filtros.texto.trim().toLowerCase();
+    return unidades.filter(
+      (u) =>
+        (!texto || u.name?.toLowerCase().includes(texto)) &&
+        (!filtros.tipo || u.type === filtros.tipo) &&
+        (!filtros.ubicacion || u.location === filtros.ubicacion) &&
+        (!filtros.soloDisponibles || u.availableSlots > 0)
+    );
+  }, [unidades, filtros]);
 
-  const handleCrearUnidad = async (nuevaUnidad) => {
-    await fetchWithToken(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevaUnidad),
-    });
-    await cargarUnidades();
+  const setFiltro = (campo, valor) => setFiltros((prev) => ({ ...prev, [campo]: valor }));
+  const hayFiltros = JSON.stringify(filtros) !== JSON.stringify(FILTROS_INICIALES);
+
+  const crearUnidad = async (unidad) => {
+    await fetchWithToken(`${API}/units`, { method: "POST", body: JSON.stringify(unidad) });
+    await recargar();
+    setCreando(false);
   };
 
-  const tipos = useMemo(
-    () => [...new Set(units.map((u) => u.type).filter(Boolean))],
-    [units]
+  const filtrosUI = (
+    <section aria-label="Filtros" className={`as-surface catalogo-filtros ${personal ? "en-fila" : "en-columna"}`}>
+      <div className="filtro-buscar">
+        <label htmlFor="f-buscar" className="form-label">Buscar por nombre</label>
+        <input id="f-buscar" type="search" className="form-control" placeholder="Ej: Cabaña Cóndor"
+          value={filtros.texto} onChange={(e) => setFiltro("texto", e.target.value)} />
+      </div>
+      <fieldset>
+        <legend className="form-label">Tipo</legend>
+        <div className="d-flex flex-wrap gap-2">
+          {[["", "Todos"], ...Object.entries(TIPOS).map(([k, v]) => [k, v.label])].map(([valor, label]) => (
+            <button key={valor} type="button" aria-pressed={filtros.tipo === valor}
+              className={`as-chip ${filtros.tipo === valor ? "is-on" : ""}`} onClick={() => setFiltro("tipo", valor)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <div>
+        <label htmlFor="f-ubic" className="form-label">Ubicación</label>
+        <select id="f-ubic" className="form-select" value={filtros.ubicacion} onChange={(e) => setFiltro("ubicacion", e.target.value)}>
+          <option value="">Todas</option>
+          {ubicaciones.map((l) => <option key={l}>{l}</option>)}
+        </select>
+      </div>
+      <div className="form-check d-flex align-items-center gap-2 m-0 ps-0">
+        <input id="f-cupos" type="checkbox" className="form-check-input m-0" checked={filtros.soloDisponibles}
+          onChange={(e) => setFiltro("soloDisponibles", e.target.checked)} />
+        <label htmlFor="f-cupos" className="form-check-label">Solo con cupos disponibles</label>
+      </div>
+      <button type="button" className="btn btn-outline-secondary" disabled={!hayFiltros} onClick={() => setFiltros(FILTROS_INICIALES)}>
+        Limpiar filtros
+      </button>
+    </section>
   );
-  const ubicaciones = useMemo(
-    () => [...new Set(units.map((u) => u.location).filter(Boolean))],
-    [units]
+
+  const reservarBtn = (u, clase) => (
+    <button type="button" className={`btn btn-primary ${clase}`} disabled={!(u.availableSlots > 0)} onClick={() => setReservando(u)}>
+      {u.availableSlots > 0 ? "Reservar" : "Sin cupos"}
+    </button>
   );
 
-  const unitsFiltradas = useMemo(() => {
-    const texto = filtros.texto.trim().toLowerCase();
-    return units.filter((u) => {
-      if (texto && !u.name?.toLowerCase().includes(texto)) return false;
-      if (filtros.tipo !== "TODOS" && u.type !== filtros.tipo) return false;
-      if (filtros.ubicacion !== "TODAS" && u.location !== filtros.ubicacion) return false;
-      if (filtros.soloDisponibles && !(u.availableSlots > 0)) return false;
-      return true;
-    });
-  }, [units, filtros]);
-
-  const setFiltro = (campo, valor) =>
-    setFiltros((prev) => ({ ...prev, [campo]: valor }));
-
-  const hayFiltrosActivos =
-    JSON.stringify(filtros) !== JSON.stringify(FILTROS_INICIALES);
-
-  if (loading) {
-    return <div className="container text-center my-5">Cargando catalogo...</div>;
-  }
+  const resultado = cargando ? (
+    <Cargando texto="Cargando catálogo..." />
+  ) : error ? (
+    <div className="alert alert-danger" role="alert">{error}</div>
+  ) : visibles.length === 0 ? (
+    <div className="as-surface as-empty">
+      {unidades.length === 0 ? "Todavía no hay unidades en el catálogo." : "Ninguna unidad coincide con los filtros."}
+    </div>
+  ) : personal ? (
+    <div className="as-table-wrap">
+      <div className="table-responsive">
+        <table className="table table-hover" style={{ minWidth: 720 }}>
+          <thead>
+            <tr>
+              <th scope="col">Unidad</th>
+              <th scope="col">Tipo</th>
+              <th scope="col" className="text-end">Tarifa / noche</th>
+              <th scope="col" style={{ width: 200 }}>Cupos libres</th>
+              <th scope="col" className="text-end">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibles.map((u) => (
+              <tr key={u.id}>
+                <td>
+                  <div className="d-flex align-items-center gap-3">
+                    <img src={fotoUnidad(u.type)} alt="" width="56" height="44" className="rounded-3 object-fit-cover" />
+                    <div><strong className="fw-semibold">{u.name}</strong><br /><span className="small as-muted">{u.location}</span></div>
+                  </div>
+                </td>
+                <td>{tipoLabel(u.type)}</td>
+                <td className="text-end">{formatoPrecio(u.pricePerNight)}</td>
+                <td><Cupos unit={u} /></td>
+                <td className="text-end">{reservarBtn(u, "btn-sm")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : (
+    <div className="as-grid-cards">
+      {visibles.map((u) => (
+        <article key={u.id} className="as-unit-card">
+          <div className="position-relative">
+            <img src={fotoUnidad(u.type)} alt="" />
+            <span className="as-pill unidad-tipo">{tipoLabel(u.type)}</span>
+          </div>
+          <div className="as-unit-body">
+            <h2 className="as-unit-name">{u.name}</h2>
+            <p className="m-0 as-muted">{u.location}</p>
+            <div className="mt-2"><Cupos unit={u} /></div>
+            <div className="d-flex align-items-center justify-content-between gap-2 mt-auto pt-3">
+              <p className="as-price"><strong>{formatoPrecio(u.pricePerNight)}</strong> / noche</p>
+              {reservarBtn(u, "")}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="container my-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="mb-0">Catálogo de unidades</h1>
-        <button
-          type="button"
-          className="btn btn-success"
-          onClick={() => setShowCrear(true)}
-        >
-          + Crear unidad
-        </button>
+    <main className="as-page">
+      <div className="as-page-head">
+        <div>
+          <h1 className="as-page-title">{personal ? "Catálogo de unidades" : "¿Dónde te quedas esta vez?"}</h1>
+          <p className="as-page-lead">
+            {personal
+              ? `${unidades.length} unidades activas.`
+              : "Cabañas, lodges y hostales en la cordillera. Elige una y reserva tus fechas."}
+          </p>
+        </div>
+        {personal && !creando && (
+          <button type="button" className="btn btn-primary" onClick={() => setCreando(true)}>Crear unidad</button>
+        )}
       </div>
 
-      {/* Barra de filtros */}
-      <div className="card shadow-sm border-0 p-3 mb-4">
-        <div className="row g-3 align-items-end">
-          <div className="col-12 col-md-4">
-            <label className="form-label small mb-1">Buscar por nombre</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Ej: Cabaña Cóndor"
-              value={filtros.texto}
-              onChange={(e) => setFiltro("texto", e.target.value)}
-            />
+      {personal ? (
+        <>
+          {filtrosUI}
+          <div className="catalogo-cuerpo">
+            <section aria-label="Unidades" className="catalogo-lista">{resultado}</section>
+            {creando && <CrearUnidad onClose={() => setCreando(false)} onSubmit={crearUnidad} />}
           </div>
-
-          <div className="col-6 col-md-2">
-            <label className="form-label small mb-1">Tipo</label>
-            <select
-              className="form-select"
-              value={filtros.tipo}
-              onChange={(e) => setFiltro("tipo", e.target.value)}
-            >
-              <option value="TODOS">Todos</option>
-              {tipos.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-6 col-md-3">
-            <label className="form-label small mb-1">Ubicación</label>
-            <select
-              className="form-select"
-              value={filtros.ubicacion}
-              onChange={(e) => setFiltro("ubicacion", e.target.value)}
-            >
-              <option value="TODAS">Todas</option>
-              {ubicaciones.map((l) => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="col-6 col-md-auto">
-            <div className="form-check">
-              <input
-                id="soloDisponibles"
-                type="checkbox"
-                className="form-check-input"
-                checked={filtros.soloDisponibles}
-                onChange={(e) => setFiltro("soloDisponibles", e.target.checked)}
-              />
-              <label htmlFor="soloDisponibles" className="form-check-label small">
-                Solo con cupos
-              </label>
-            </div>
-          </div>
-
-          <div className="col-12 col-md-auto ms-md-auto">
-            <button
-              type="button"
-              className="btn btn-outline-secondary btn-sm"
-              disabled={!hayFiltrosActivos}
-              onClick={() => setFiltros(FILTROS_INICIALES)}
-            >
-              Limpiar filtros
-            </button>
-          </div>
-        </div>
-
-        <p className="text-muted small mt-3 mb-0">
-          Mostrando <strong>{unitsFiltradas.length}</strong> de {units.length} unidades
-        </p>
-      </div>
-
-      {unitsFiltradas.length === 0 ? (
-        <div className="text-center my-5 p-4 bg-light rounded shadow-sm">
-          <h4 className="text-muted mb-2">
-            {units.length === 0
-              ? "No hay unidades disponibles"
-              : "Ninguna unidad coincide con los filtros"}
-          </h4>
-          <p className="text-secondary mb-0">Total registrados: {units.length}</p>
-        </div>
+        </>
       ) : (
-        <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 justify-content-center">
-          {unitsFiltradas.map((unit) => (
-            <div className="col" key={unit.id}>
-              <div className="card h-100 shadow-sm border-0 catalog-card">
-                <div className="card-body-catalog p-3">
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <h3 className="card-title-catalog h5 mb-0">{unit.name}</h3>
-                    <span
-                      className={`badge ${
-                        unit.type === "LODGE"
-                          ? "bg-primary"
-                          : unit.type === "CABANA"
-                          ? "bg-warning text-dark"
-                          : "bg-success"
-                      }`}
-                    >
-                      {unit.type}
-                    </span>
-                  </div>
-
-                  <p className="card-text-catalog mb-1">
-                    Ubicación: <strong>{unit.location}</strong>
-                  </p>
-
-                  <p className="card-price mb-1">
-                    <strong>Tarifa:</strong> ${Number(unit.pricePerNight).toLocaleString("es-CL")} / noche
-                  </p>
-
-                  <p className="text-muted small mb-3">
-                    Cupos disponibles: <strong>{unit.availableSlots}</strong> de {unit.totalSlots}
-                  </p>
-
-                  <hr className="my-3 text-muted" />
-
-                  <DisponibilidadCalendario
-                    unit={unit}
-                    onReservar={(fecha) => setReserva({ unit, checkInDate: fecha })}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="catalogo-cuerpo">
+          {filtrosUI}
+          <section aria-label="Unidades" className="catalogo-lista">
+            {!cargando && <p className="as-muted mb-3">Mostrando <strong>{visibles.length}</strong> de {unidades.length} unidades</p>}
+            {resultado}
+          </section>
         </div>
       )}
 
-      <CrearUnidad
-        show={showCrear}
-        onClose={() => setShowCrear(false)}
-        onSubmit={handleCrearUnidad}
-      />
-
-      <ReservaModal
-        show={!!reserva}
-        unit={reserva?.unit}
-        checkInDate={reserva?.checkInDate}
-        onClose={() => setReserva(null)}
-        onCreated={() => {
-          cargarUnidades(); // refresca los cupos
-          navigate("/reservations"); // igual que hacía el formulario
-        }}
-      />
-    </div>
-  );
-}
-
-function DisponibilidadCalendario({ unit, onReservar }) {
-  const [fecha, setFecha] = useState(new Date());
-  const sinCupos = !(unit.availableSlots > 0);
-
-  return (
-    <div className="calendar-container">
-      <h6 className="calendar-title text-center mb-2">Selecciona un día para {unit.name}</h6>
-      <div className="d-flex justify-content-center">
-        <Calendar
-          onChange={setFecha}
-          value={fecha}
-          minDate={new Date()}
-          className="custom-calendar"
-        />
-      </div>
-      <p className="selected-date text-muted text-center mt-2 small">
-        Fecha seleccionada: <strong>{fecha.toLocaleDateString("es-CL")}</strong>
-      </p>
-
-      <button
-        type="button"
-        className="btn btn-primary w-100"
-        onClick={() => onReservar(toISODate(fecha))}
-        disabled={sinCupos}
-      >
-        {sinCupos ? "Sin cupos disponibles" : "Reservar hora"}
-      </button>
-    </div>
+      <ReservaModal unit={reservando} personal={personal} onClose={() => setReservando(null)} onCreated={recargar} />
+    </main>
   );
 }

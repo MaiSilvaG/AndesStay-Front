@@ -1,237 +1,143 @@
-import React, { useState, useEffect } from 'react';
-import Table from 'react-bootstrap/Table';
-import Card from 'react-bootstrap/Card';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
-import Badge from 'react-bootstrap/Badge';
-import Spinner from 'react-bootstrap/Spinner';
-import Alert from 'react-bootstrap/Alert';
-import { useNavigate } from 'react-router-dom';
-import { useApi } from '../useApi';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
+import { API, useApi } from '../useApi';
+import { useUnidades } from '../ui/useUnidades';
+import { Cargando, EstadoBadge } from '../ui/componentes';
+import { comoLista, esActiva, esCancelable, fotoUnidad, normalizarReserva, tipoLabel } from '../ui/dominio';
+import { fechaCorta, hoyISO, noches } from '../ui/fechas';
+import './reservas.css';
 
-const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/')
-  ? import.meta.env.VITE_API_URL
-  : `${import.meta.env.VITE_API_URL}/`;
-
-const API_URL = `${baseUrl}api/reservations`;
-
-const formatDate = (value) => {
-  if (!value) return 'N/A';
-  const [y, m, d] = String(value).slice(0, 10).split('-');
-  return y && m && d ? `${d}-${m}-${y}` : 'N/A';
-};
-
-const normalizeReserva = (r) => ({
-  id: r.id,
-  guest_id: r.guest_id ?? r.guestId,
-  guest_name: r.guest_name ?? r.guestName,
-  unit_id: r.unit_id ?? r.unitId,
-  check_in_date: r.check_in_date ?? r.checkInDate,
-  check_out_date: r.check_out_date ?? r.checkOutDate,
-  status: r.status,
-});
-
-function ReservasCliente({ guestIdAuth }) {
-  const navigate = useNavigate();
+export default function ReservasCliente() {
   const { fetchWithToken } = useApi();
-  const currentGuestId = guestIdAuth || localStorage.getItem('guest_id');
-
+  const { instance } = useMsal();
+  const { porId } = useUnidades();
   const [reservas, setReservas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [cancelar, setCancelar] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [cancelando, setCancelando] = useState(null);
 
-  const fetchReservasCliente = async () => {
+  const cargar = async () => {
+    setCargando(true);
+    setError('');
     try {
-      setLoading(true);
-      setErrorMsg('');
-
-      const data = await fetchWithToken(API_URL);
-      const raw = Array.isArray(data)
-        ? data
-        : (data?.reservations ?? data?.data ?? data?.content ?? []);
-
-      const list = raw
-        .filter(Boolean)
-        .map(normalizeReserva)
-        .filter((r) => String(r.guest_id) === String(currentGuestId))
-        .sort((a, b) => b.id - a.id);
-
-      setReservas(list);
+      let data;
+      try {
+        data = await fetchWithToken(`${API}/reservations/mine`);
+      } catch (err) {
+        // shortcut: back sin /mine todavía; filtra la lista completa. Borrar cuando el back esté desplegado.
+        if (err.status !== 404 && err.status !== 405) throw err;
+        const cuenta = instance.getActiveAccount();
+        const yo = cuenta?.idTokenClaims?.oid ?? cuenta?.localAccountId;
+        data = comoLista(await fetchWithToken(`${API}/reservations`)).filter(
+          (r) => String(r.guestId ?? r.guest_id) === String(yo)
+        );
+      }
+      setReservas(comoLista(data).map(normalizarReserva).sort((a, b) => b.id - a.id));
     } catch (err) {
-      console.error('Error al cargar las reservas:', err);
-      setErrorMsg('No se pudieron obtener sus reservas. Intente mas tarde.');
-      setReservas([]);
+      setError(err.message || 'No se pudieron cargar tus reservas.');
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
   useEffect(() => {
-    if (currentGuestId) {
-      fetchReservasCliente();
-    } else {
-      setLoading(false);
-      setErrorMsg('No se identifico la sesion .');
-    }
-  }, [currentGuestId]);
+    cargar();
+  }, []);
 
-  const cancelarReserva = async(id) => {
-    const confirmacion = window.confirm(`¿Esta seguro que desea cancelar la reserva #${id}?`);
-    if(!confirmacion) return;
-
-    try{
-      setCancelar(id);
-      setErrorMsg('');
-
-      await fetchWithToken(`${API_URL}/${id}/cancel`, {
-        method: 'POST',
-        body: JSON.stringify({status: 'CANCELADA'}),
-      });
-
-      //actualiza el estado local no recarla toda lista
+  const cancelar = async (r) => {
+    if (!window.confirm(`¿Cancelar la reserva n° ${r.id}?`)) return;
+    setCancelando(r.id);
+    setError('');
+    try {
+      const actualizada = await fetchWithToken(`${API}/reservations/${r.id}/cancel`, { method: 'POST' });
       setReservas((prev) =>
-        prev.map((res) => (res.id === id ? { ...res, status:'CANCELADA'}:res))
+        prev.map((x) => (x.id === r.id ? normalizarReserva(actualizada ?? { ...x, status: 'CANCELADA', cancellable: false }) : x))
       );
-    } catch(err){
-      setErrorMsg('No se pudo cancelar la reserva');
-    }
-    finally{
-      setCancelar(null);
-    }
-  };
-
-  const getBadgeVariant = (status) => {
-    switch (status) {
-      case 'CONFIRMADA': return 'success';
-      case 'EN_ESTADIA': return 'primary';
-      case 'CREADA': return 'secondary';
-      case 'CHECKIN_PENDIENTE': return 'warning';
-      case 'CANCELADA': return 'danger';
-      case 'CHECKOUT': return 'info';
-      default: return 'secondary';
+    } catch (err) {
+      setError(err.message || 'No se pudo cancelar la reserva.');
+    } finally {
+      setCancelando(null);
     }
   };
 
-  const reservasActivas = reservas.filter((r) =>
-    ['CREADA', 'CONFIRMADA', 'CHECKIN_PENDIENTE', 'EN_ESTADIA'].includes(r.status)
-  ).length;
-
-  const puedeCancelar = (status) => 
-    ['CREADA', 'CONFIRMADA', 'CHECKIN_PENDIENTE'].includes(status);
+  const activas = reservas.filter(esActiva);
+  const proxima = activas
+    .filter((r) => r.checkInDate >= hoyISO() && r.status !== 'EN_ESTADIA')
+    .sort((a, b) => a.checkInDate.localeCompare(b.checkInDate))[0];
+  const unidadDe = (r) => porId.get(r.unitId);
 
   return (
-    <div className="container my-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <main className="as-page">
+      <div className="as-page-head">
         <div>
-          <h1>Mis Reservas</h1>
+          <h1 className="as-page-title">Mis reservas</h1>
+          {!cargando && (
+            <p className="as-page-lead">
+              Tienes {activas.length} {activas.length === 1 ? 'reserva activa' : 'reservas activas'} y {reservas.length} en total.
+            </p>
+          )}
         </div>
-        <Button variant="primary" className="shadow-sm" onClick={() => navigate('/formulario')}>
-          + Nueva Reserva
-        </Button>
+        <Link to="/formulario" className="btn btn-primary">Nueva reserva</Link>
       </div>
 
-      {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
-      {/* Tarjetas de Resumen */}
-      <Row className="mb-4">
-        <Col md={3} className="mb-3 mb-md-0">
-          <Card className="shadow-sm border-0 bg-primary text-white">
-            <Card.Body>
-              <h5>Reservas Activas</h5>
-              <h2 className="display-6 fw-bold mb-0">{reservasActivas}</h2>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col md={3}>
-          <Card className="shadow-sm border-0 bg-light">
-            <Card.Body>
-              <h5>Total de Reservas</h5>
-              <h2 className="display-6 fw-bold mb-0">{reservas.length}</h2>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Tabla de Reservas */}
-      <Card className="shadow-sm border-0">
-        <Card.Body className="p-0">
-          {loading ? (
-            <div className="text-center my-5">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-2 text-muted">Cargando tus reservas...</p>
+      {proxima && (
+        <section aria-label="Tu próxima estadía" className="proxima">
+          <img src={fotoUnidad(unidadDe(proxima)?.type)} alt="" />
+          <div className="proxima-cuerpo">
+            <p className="m-0 proxima-suave">Tu próxima estadía</p>
+            <h2 className="m-0 proxima-titulo">
+              {unidadDe(proxima)?.name ?? `Unidad n° ${proxima.unitId}`}
+              {unidadDe(proxima)?.location && `, ${unidadDe(proxima).location}`}
+            </h2>
+            <div className="d-flex flex-wrap gap-4">
+              <p className="m-0"><span className="proxima-suave">Llegada</span><br /><strong>{fechaCorta(proxima.checkInDate)}</strong></p>
+              <p className="m-0"><span className="proxima-suave">Salida</span><br /><strong>{fechaCorta(proxima.checkOutDate)}</strong></p>
+              <p className="m-0"><span className="proxima-suave">Faltan</span><br /><strong>{noches(hoyISO(), proxima.checkInDate)} días</strong></p>
             </div>
-          ) : reservas.length > 0 ? (
-            <Table responsive hover className="align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th>N° Reserva</th>
-                  <th>Unidad</th>
-                  <th>Check-In</th>
-                  <th>Check-Out</th>
-                  <th>Estado</th>
-                  <th className="text-center">Accion</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reservas.map((item) => {
-                  const cancelable = puedeCancelar(item.status);
-                  const EsCacelar = cancelar === item.id;
+          </div>
+        </section>
+      )}
 
-                  return (
-                    <tr key={item.id}>
-                      <td><strong>#{item.id}</strong></td>
-                      <td>Unidad #{item.unit_id ?? 'N/A'}</td>
-                      <td>{formatDate(item.check_in_date)}</td>
-                      <td>{formatDate(item.check_out_date)}</td>
-                      <td>
-                        <Badge bg={getBadgeVariant(item.status)} className="p-2">
-                          {item.status}
-                        </Badge>
-                      </td>
-                      <td className='text-center'>
-                        {cancelable ? (
-                          <Button
-                            variant='danger'
-                            size='sm'
-                            disabled={EsCacelar}
-                            onClick={() => cancelarReserva(item.id)}
-                          >
-                            {EsCacelar ? (
-                              <>
-                                <Spinner
-                                  as="span"
-                                  animation="border"
-                                  size="sm"
-                                  role="status"
-                                  aria-hidden="true"
-                                  className="me-1"
-                                />
-                                Cancelando...
-                              </>
-                            ) : (
-                              'Cancelar Reserva'
-                            )}
-                          </Button>
-                        ) : (
-                          <span className="text-muted small">N/A</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </Table>
-          ) : (
-            <div className="text-center py-5">
-              <p className="text-muted mb-0">No tienes reservas registradas a tu nombre.</p>
-            </div>
-          )}
-        </Card.Body>
-      </Card>
-    </div>
+      <section aria-label="Todas tus reservas" className="d-flex flex-column gap-3">
+        <h2 className="as-section-title">Todas tus reservas</h2>
+        {cargando ? (
+          <Cargando texto="Cargando tus reservas..." />
+        ) : reservas.length === 0 ? (
+          <div className="as-surface as-empty">
+            Aún no tienes reservas. <Link to="/catalogCliente">Mira el catálogo</Link> para hacer la primera.
+          </div>
+        ) : (
+          <ul className="list-unstyled m-0 d-flex flex-column gap-2">
+            {reservas.map((r) => {
+              const n = noches(r.checkInDate, r.checkOutDate);
+              const u = unidadDe(r);
+              return (
+                <li key={r.id} className="reserva-fila as-surface">
+                  <div className="reserva-unidad">
+                    <h3 className="m-0 fs-5">{u?.name ?? `Unidad n° ${r.unitId}`}</h3>
+                    <p className="m-0 small as-muted">Reserva n° {r.id}{u && ` · ${tipoLabel(u.type)}`}</p>
+                  </div>
+                  <p className="m-0 reserva-fechas">
+                    {fechaCorta(r.checkInDate)} – {fechaCorta(r.checkOutDate)}{' '}
+                    <span className="as-muted">· {n} {n === 1 ? 'noche' : 'noches'}</span>
+                  </p>
+                  <div className="reserva-estado"><EstadoBadge status={r.status} /></div>
+                  <div className="reserva-accion">
+                    {esCancelable(r) && (
+                      <button type="button" className="btn btn-outline-danger btn-sm" disabled={cancelando === r.id} onClick={() => cancelar(r)}>
+                        {cancelando === r.id ? 'Cancelando...' : 'Cancelar'}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    </main>
   );
 }
-
-export default ReservasCliente;

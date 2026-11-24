@@ -1,12 +1,14 @@
-.brand-logo {
-  height: 60px;
-  width: auto;
-  object-fit: contain;
-  margin-top: -10px;  
-  margin-bottom: -10px;
-  transition: transform 0.2s ease-in-out;
+.as-nav .navbar-brand {
+  display: flex;
+  align-items: center;
+  height: 44px;       
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-.brand-logo:hover {
-  transform: scale(1.15); 
+.as-nav .navbar-brand img {
+  height: 65px;        
+  width: auto;
+  max-height: none;
+  object-fit: contain;
 }

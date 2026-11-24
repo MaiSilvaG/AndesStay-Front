@@ -1,97 +1,65 @@
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
+import { Link } from 'react-router-dom';
 import { loginRequest } from '../authConfig';
-import { ProtectedData } from '../ProtectedData';
+import { rutaInicio, useUserRoles } from '../useUserRoles';
+import logo from '../assets/logo.png';
+import fotoCabana from '../assets/cabaña.jpg';
 import './login.css';
-import { useEffect } from 'react';
 
 export default function Login() {
   const { instance, accounts, inProgress } = useMsal();
   const isAuthenticated = useIsAuthenticated();
+  const roles = useUserRoles();
+  const ocupado = inProgress !== InteractionStatus.None;
 
-  const currentUser = instance.getActiveAccount() || accounts[0];
-  const userName = currentUser?.name || currentUser?.username || "";
+  const usuario = instance.getActiveAccount() || accounts[0];
+  const nombre = usuario?.name || usuario?.username || '';
 
-  const getInitials = (name) => {
-    if (!name) return "U";
-    const parts = name.trim().split(" ");
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return parts[0][0].toUpperCase();
-  };
+  const iniciarSesion = () =>
+    instance.loginRedirect(loginRequest).catch((e) => console.error('Error al iniciar sesión:', e));
 
-  const handleLogin = async () => {
-    try {
-      await instance.loginRedirect(loginRequest);
-    } catch (e) {
-      console.error("Error al iniciar sesión:", e);
-    }
-  };
-
-  const handleLogout = () => {
+  const cerrarSesion = () =>
     instance.logoutRedirect({ postLogoutRedirectUri: '/login' }).catch((e) => console.error(e));
-  };
-
-  //guarda correo e id
-  useEffect(() => {
-    if (isAuthenticated && currentUser) {
-      const userIdentifier = currentUser.idTokenClaims?.oid || currentUser.username;
-      localStorage.setItem('guest_id', userIdentifier);
-    }
-  }, [isAuthenticated, currentUser]);
 
   return (
-    <div className="login-wrapper">
-      <div className="login-card">
-        <div className="login-header">
-          <h2 className="login-title">Mi Cuenta</h2>
-        </div>
+    <div className="login-split">
+      <img className="login-foto" src={fotoCabana} alt="" />
+
+      <main className="login-panel">
+        <img src={logo} alt="AndesStay" width="220" />
 
         {isAuthenticated ? (
-          <div className="login-body">
-            <div className="user-profile-box">
-              <div className="user-avatar">
-                {getInitials(userName)}
-              </div>
-              <div className="user-info">
-                <span className="user-greeting">Bienvenido/a</span>
-                <strong className="user-name">{userName}</strong>
-              </div>
+          <>
+            <div>
+              <h1 className="as-page-title">Hola, {nombre.split(' ')[0]}</h1>
+              <p className="as-page-lead">Tu sesión está activa como {usuario?.username}.</p>
             </div>
-
-            <button className="btn-logout" onClick={handleLogout}>
-              Cerrar Sesión
-            </button>
-
-            {/* <hr className="my-4" />
-            <ProtectedData /> */}
-          </div>
+            <div className="as-surface p-4 d-flex flex-column gap-3">
+              <Link to={rutaInicio(roles)} className="btn btn-primary">Ir al inicio</Link>
+              <button type="button" className="btn btn-outline-danger" onClick={cerrarSesion}>
+                Cerrar sesión
+              </button>
+            </div>
+          </>
         ) : (
-          <div className="login-body">
-            <p className="login-description">
-              Inicia sesión para acceder a la plataforma.
-            </p>
-            
-            <button
-              className="btn-inicio"
-              onClick={handleLogin}
-              disabled={inProgress !== InteractionStatus.None}
-            >
-              {inProgress !== InteractionStatus.None ? (
-                <span className="d-flex align-items-center justify-content-center">
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Conectando...
-                </span>
-              ) : (
-                <>
-                  <span>Iniciar Sesión</span>
-                </>
-              )}
-            </button>
-          </div>
+          <>
+            <div>
+              <h1 className="as-page-title">Bienvenido de vuelta</h1>
+              <p className="as-page-lead">
+                Entra con tu cuenta de la organización para ver el catálogo y tus reservas.
+              </p>
+            </div>
+            <div className="as-surface p-4 d-flex flex-column gap-3">
+              <button type="button" className="btn btn-primary" onClick={iniciarSesion} disabled={ocupado}>
+                {ocupado && <span className="spinner-border spinner-border-sm me-2 text-white" aria-hidden="true" />}
+                {ocupado ? 'Conectando...' : 'Iniciar sesión con Microsoft'}
+              </button>
+              <p className="m-0 small as-muted text-center">Se abrirá una ventana para confirmar tu identidad.</p>
+            </div>
+          </>
         )}
-      </div>
+      </main>
     </div>
   );
 }

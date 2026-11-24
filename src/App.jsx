@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navigation from './navbar/navbar';
 import Catalog from './catalog/catalog'; 
-import CatalogCliente from './catalog/catalogCliente';
 import Dashboard from './dashboard/dashboard';
 import RecepcionistaDashboard from './dashboard/dashboardRecepcionista';
 import Audit from './audit/audit';
@@ -9,22 +8,12 @@ import Login from './login/login';
 import Formulario from './reservations/formulario';
 import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
-import NotificacionCliente from './notificacion/notificacionCliente';
-import NotificacionPersonal from './notificacion/notificacionPersonal';
+import Notificaciones from './notificacion/Notificaciones';
 import RabbitAdmin from './rabbitAdmin/rabbitAdmin';
+import KafkaAdmin from './kafkaAdmin/kafkaAdmin';
 import { ProtectedRoute } from './ProtectedRoute';
-import { useMsal } from '@azure/msal-react';
 
 function App() {
-  const { instance, accounts } = useMsal();
-
-  //obtener la cuenta activa
-  const activeAccount = instance.getActiveAccount();
-  const guestId =
-    activeAccount?.idTokenClaims?.oid ||
-    activeAccount?.idTokenClaims?.sub ||
-    activeAccount?.localAccountId;
-
   return (
     <BrowserRouter>
       <Navigation />
@@ -61,7 +50,7 @@ function App() {
           path="/reservasCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <ReservasCliente guestIdAuth={guestId}/>
+              <ReservasCliente />
             </ProtectedRoute>
           } 
         />
@@ -91,7 +80,7 @@ function App() {
           path="/catalog" 
           element={
             <ProtectedRoute allowedRoles={['Recepcionista', 'Admin']}>
-              <Catalog />
+              <Catalog personal />
             </ProtectedRoute>
           } 
         />
@@ -101,7 +90,7 @@ function App() {
           path="/catalogCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <CatalogCliente/>
+              <Catalog />
             </ProtectedRoute>
           } 
         />
@@ -111,7 +100,7 @@ function App() {
           path="/notificacionCliente" 
           element={
             <ProtectedRoute allowedRoles={['Cliente']}>
-              <NotificacionCliente guestIdAuth={guestId}/>
+              <Notificaciones />
             </ProtectedRoute >
           } 
         />
@@ -121,7 +110,7 @@ function App() {
           path="/notificacionPersonal" 
           element={
             <ProtectedRoute allowedRoles={['Admin', 'Recepcionista']}>
-              <NotificacionPersonal guestIdAuth={guestId}/>
+              <Notificaciones />
             </ProtectedRoute >
           } 
         />
@@ -134,6 +123,16 @@ function App() {
               <RabbitAdmin />
             </ProtectedRoute>
           } 
+        />
+
+        {/* kafkaAdmin: administración de Kafka, solo Admin */}
+        <Route
+          path="/kafkaAdmin"
+          element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <KafkaAdmin />
+            </ProtectedRoute>
+          }
         />
 
         {/* audit: Auditor */}

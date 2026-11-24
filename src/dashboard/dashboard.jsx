@@ -1,93 +1,114 @@
-import React, { useState, useEffect } from "react";
-import CardGridMap from "./CardGridMap";
-import BarListDash from "./BarListDash";
-import TablaReservas from "./tablaReservas";
-import { useApi } from "../useApi";
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useUnidades } from '../ui/useUnidades';
+import { useReservas } from '../ui/useReservas';
+import { Cargando, EstadoBadge, Medidor } from '../ui/componentes';
+import { ESTADOS } from '../ui/dominio';
+import { fechaCorta } from '../ui/fechas';
 
-const normalizeReserva = (r) => ({
-  id: r.id,
-  guest_id: r.guest_id ?? r.guestId,
-  guest_name: r.guest_name ?? r.guestName,
-  unit_id: r.unit_id ?? r.unitId,
-  check_in_date: r.check_in_date ?? r.checkInDate,
-  check_out_date: r.check_out_date ?? r.checkOutDate,
-  status: r.status,
-});
+// Color de cada estado en "Reservas por estado" (difieren también en luminosidad)
+export const COLORES_ESTADO = {
+  CREADA: '#AA84B8',
+  CONFIRMADA: '#198754',
+  CHECKIN_PENDIENTE: '#ffc107',
+  EN_ESTADIA: '#0d6efd',
+  CHECKOUT: '#64748b',
+  CANCELADA: '#ef4444',
+};
 
 export default function Dashboard() {
-  const { fetchWithToken } = useApi();
-  const [reportData, setReportData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [ultimasReservas, setUltimasReservas] = useState([]);
+  const { porId } = useUnidades();
+  const { reservas, cargando, error } = useReservas();
 
-  useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL?.endsWith("/")
-      ? import.meta.env.VITE_API_URL
-      : `${import.meta.env.VITE_API_URL}/`;
+  const porEstado = useMemo(
+    () => reservas.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] ?? 0) + 1 }), {}),
+    [reservas]
+  );
+  const total = reservas.length;
+  const ultimas = reservas.slice(0, 5); // el hook ya las ordena de la más nueva a la más antigua
+  const maxEstado = Math.max(1, ...Object.values(porEstado));
+  const pct = (n) => (total ? `${Math.round((n / total) * 100)} % del total` : '—');
 
-    const RESERVATIONS_API_URL = `${baseUrl}api/reservations`;
+  const cifras = [
+    { titulo: 'Total de reservas', valor: total, nota: 'Todas las del sistema', color: '#22c55e', ratio: total },
+    { titulo: 'Estadías activas', valor: porEstado.EN_ESTADIA ?? 0, color: '#3b82f6' },
+    { titulo: 'Completadas', valor: porEstado.CHECKOUT ?? 0, color: '#64748b' },
+    { titulo: 'Canceladas', valor: porEstado.CANCELADA ?? 0, color: '#ef4444' },
+  ];
 
-    fetchWithToken(RESERVATIONS_API_URL)
-      .then((data) => {
-        const rawList = Array.isArray(data)
-          ? data
-          : (data?.reservations ?? data?.data ?? data?.content ?? []);
-        
-        const listaNormalizada = rawList.filter(Boolean).map(normalizeReserva);
-
-        const byStatus = listaNormalizada.reduce((acc, item) => {
-          const status = item.status || "DESCONOCIDO";
-          acc[status] = (acc[status] || 0) + 1;
-          return acc;
-        }, {});
-        
-        const summary = {
-          totalReservations: listaNormalizada.length,
-          byStatus: byStatus,
-          activeStays: byStatus.EN_ESTADIA || 0,
-        };
-
-        const recientes = [...listaNormalizada]
-            .sort((a,b) => b.id - a.id)
-            .slice(0,5);
-
-        setReportData(summary);
-        setUltimasReservas(recientes);
-      })
-      .catch((err) => {
-        console.error("Error al obtener reservas para el dashboard:", err);
-        setReportData({
-          totalReservations: 0,
-          byStatus: {},
-          activeStays: 0,
-        });
-        setUltimasReservas([]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return (
-      <main className="p-6 sm:p-10 min-h-screen flex flex-col justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-3"></div>
-        <p className="text-gray-500 font-medium">Cargando reporte...</p>
-      </main>
-    );
-  }
+  if (cargando) return <main className="as-page"><Cargando texto="Cargando resumen..." /></main>;
 
   return (
-    <main className="p-6 sm:p-10 min-h-screen">
-      <h1 className="mb-6">Dashboard</h1>
+    <main className="as-page">
+      <div>
+        <h1 className="as-page-title">Resumen de reservas</h1>
+        <p className="as-page-lead">Todas las reservas registradas en AndesStay.</p>
+      </div>
 
-      <CardGridMap summary={reportData} />
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
-      <BarListDash summary={reportData} />
+      <div className="as-grid-stats">
+        {cifras.map((c) => (
+          <div key={c.titulo} className="as-stat d-flex flex-column gap-2">
+            <p className="m-0 as-muted">{c.titulo}</p>
+            <p className="as-stat-value m-0">{c.valor}</p>
+            <Medidor valor={c.ratio ?? c.valor} total={total} texto={<span className="fw-normal small as-muted">{c.nota ?? pct(c.valor)}</span>} color={c.color} />
+          </div>
+        ))}
+      </div>
 
-      <TablaReservas reservas={ultimasReservas} />
+      <section aria-label="Reservas por estado" className="as-surface p-4 d-flex flex-column gap-3">
+        <h2 className="as-section-title">Reservas por estado</h2>
+        {total === 0 ? (
+          <p className="m-0 as-muted">Todavía no hay reservas.</p>
+        ) : (
+          <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+            {Object.entries(ESTADOS).map(([k, label]) => (
+              <li key={k} className="as-barra-estado">
+                <span className="fw-semibold">{label}</span>
+                <span className="as-meter-track" style={{ height: 28, borderRadius: 8, background: 'var(--as-ground)' }} aria-hidden="true">
+                  <span className="as-meter-fill" style={{ borderRadius: 8, width: `${((porEstado[k] ?? 0) / maxEstado) * 100}%`, background: COLORES_ESTADO[k] }} />
+                </span>
+                <span className="text-end fw-semibold">{porEstado[k] ?? 0}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-      
+      <section aria-label="Últimas reservas" className="as-table-wrap">
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 pt-4 pb-3">
+          <h2 className="as-section-title">Últimas 5 reservas</h2>
+          <Link to="/reservasEditar" className="fw-semibold">Ver todas las reservas</Link>
+        </div>
+        <div className="table-responsive">
+          <table className="table" style={ultimas.length ? { minWidth: 760 } : undefined}>
+            <thead>
+              <tr>
+                <th scope="col">Reserva</th>
+                <th scope="col">Huésped</th>
+                <th scope="col">Unidad</th>
+                <th scope="col">Check-in</th>
+                <th scope="col">Check-out</th>
+                <th scope="col" className="text-end">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ultimas.map((r) => (
+                <tr key={r.id}>
+                  <td className="fw-semibold">n° {r.id}</td>
+                  <td>{r.guestName ?? '—'}</td>
+                  <td>{porId.get(r.unitId)?.name ?? `Unidad n° ${r.unitId}`}</td>
+                  <td>{fechaCorta(r.checkInDate)}</td>
+                  <td>{fechaCorta(r.checkOutDate)}</td>
+                  <td className="text-end"><EstadoBadge status={r.status} /></td>
+                </tr>
+              ))}
+              {ultimas.length === 0 && <tr><td colSpan="6" className="as-empty">No hay reservas registradas.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
   );
 }

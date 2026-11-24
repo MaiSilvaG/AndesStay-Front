@@ -8,6 +8,13 @@ export function useUserRoles() {
     return [];
   }
 
-
   return activeAccount.idTokenClaims.roles || [];
 }
+
+// Pantalla de inicio según el rol de mayor privilegio
+export const rutaInicio = (roles) =>
+  roles.includes('Admin') ? '/dashboard'
+  : roles.includes('Recepcionista') ? '/dashboardRecepcionista'
+  : roles.includes('Cliente') ? '/catalogCliente'
+  : roles.includes('Auditor') ? '/audit'
+  : '/login';

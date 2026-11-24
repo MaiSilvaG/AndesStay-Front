@@ -1,232 +1,108 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Table from 'react-bootstrap/Table';
-import Card from 'react-bootstrap/Card';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Button from 'react-bootstrap/Button';
-import Badge from 'react-bootstrap/Badge';
-import Form from 'react-bootstrap/Form';
-import Spinner from 'react-bootstrap/Spinner';
-import Alert from 'react-bootstrap/Alert';
-import { useNavigate } from 'react-router-dom';
-import { useApi } from '../useApi';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useUnidades } from '../ui/useUnidades';
+import { useReservas } from '../ui/useReservas';
+import { Cargando, EstadoBadge } from '../ui/componentes';
+import { ACCION_HACIA, ESTADOS, esCancelable, siguienteEstado } from '../ui/dominio';
+import { fechaCorta } from '../ui/fechas';
 
-const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/')
-  ? import.meta.env.VITE_API_URL
-  : `${import.meta.env.VITE_API_URL}/`;
+export default function ReservasEditar() {
+  const { porId } = useUnidades();
+  const { reservas, cargando, error, ocupada, cambiar } = useReservas();
+  const [texto, setTexto] = useState('');
+  const [estado, setEstado] = useState('');
 
-const API_URL = `${baseUrl}api/reservations`;
+  const nombreUnidad = (r) => porId.get(r.unitId)?.name ?? `Unidad n° ${r.unitId}`;
 
-const flujo = {
-  CREADA: ['CONFIRMADA', 'CANCELADA'],
-  CONFIRMADA: ['CHECKIN_PENDIENTE', 'CANCELADA'],
-  CHECKIN_PENDIENTE: ['EN_ESTADIA', 'CANCELADA'],
-  EN_ESTADIA: ['CHECKOUT'],
-  CHECKOUT: [], // Estado final
-  CANCELADA: [], // Estado final
-};
-
-const formatDate = (value) => {
-  if (!value) return 'N/A';
-  const [y, m, d] = String(value).slice(0, 10).split('-');
-  return y && m && d ? `${d}-${m}-${y}` : 'N/A';
-};
-
-const normalizeReserva = (r) => ({
-  id: r.id,
-  guest_id: r.guest_id ?? r.guestId,
-  guest_name: r.guest_name ?? r.guestName,
-  unit_id: r.unit_id ?? r.unitId,
-  check_in_date: r.check_in_date ?? r.checkInDate,
-  check_out_date: r.check_out_date ?? r.checkOutDate,
-  status: r.status,
-});
-
-function ReservasEditar() {
-  const { fetchWithToken } = useApi();
-  const [reservas, setReservas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [updatingId, setUpdatingId] = useState(null);
-  const [sortOrden, setSortOrden] = useState('asc');
-  const navigate = useNavigate();
-
-  const reservasOrdenadas = useMemo(
-    () =>
-      [...reservas].sort((a, b) =>
-        sortOrden === 'asc' ? a.id - b.id : b.id - a.id
-      ),
-    [reservas, sortOrden]
+  const t = texto.trim().toLowerCase();
+  const visibles = reservas.filter(
+    (r) =>
+      (!estado || r.status === estado) &&
+      (!t || `${r.guestName} ${nombreUnidad(r)} ${r.id}`.toLowerCase().includes(t))
   );
-
-  const fetchReservas = async () => {
-    try {
-      setLoading(true);
-      setErrorMsg('');
-
-      const data = await fetchWithToken(API_URL);
-      const raw = Array.isArray(data)
-        ? data
-        : (data?.reservations ?? data?.data ?? data?.content ?? []);
-
-      const list = raw.filter(Boolean).map(normalizeReserva);
-
-      setReservas(list);
-    } catch (err) {
-      console.error('Error al cargar reservas:', err);
-      setErrorMsg(`No se pudo conectar con el microservicio de reservas. (${err.message})`);
-      setReservas([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReservas();
-  }, []);
-
-  const handleEstadoChange = async (id, nuevoEstado) => {
-    try {
-      setUpdatingId(id);
-      setErrorMsg('');
-
-      await fetchWithToken(`${API_URL}/${id}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: nuevoEstado }),
-      });
-
-      setReservas((prev) =>
-        prev.map((res) => (res.id === id ? { ...res, status: nuevoEstado } : res))
-      );
-    } catch (error) {
-      console.error('Error al actualizar estado:', error);
-      setErrorMsg(`No se pudo actualizar el estado de la reserva #${id}.`);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const getBadgeVariant = (status) => {
-    switch (status) {
-      case 'CONFIRMADA':
-        return 'success';
-      case 'EN_ESTADIA':
-        return 'primary';
-      case 'CREADA':
-        return 'secondary';
-      case 'CHECKIN_PENDIENTE':
-        return 'warning';
-      case 'CANCELADA':
-        return 'danger';
-      case 'CHECKOUT':
-        return 'info';
-      default:
-        return 'secondary';
-    }
-  };
-
-  //funcion para el flujo
-  const opcionesEstado = (estadoActual) => {
-    const siguientes = flujo[estadoActual] || [];
-    return [estadoActual, ...siguientes];
-  };
 
   return (
-    <div className="m-5">
-      <h1>Administración de Reservas</h1>
+    <main className="as-page">
+      <div className="as-page-head">
+        <div>
+          <h1 className="as-page-title">Reservas</h1>
+          <p className="as-page-lead">Avanza o cancela una reserva desde su fila.</p>
+        </div>
+        <Link to="/formulario" className="btn btn-primary">Nueva reserva</Link>
+      </div>
 
-      {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
+      <div className="d-flex flex-wrap gap-2">
+        <label htmlFor="r-buscar" className="visually-hidden">Buscar huésped, unidad o número</label>
+        <input id="r-buscar" type="search" className="form-control" style={{ flex: '2 1 260px' }}
+          placeholder="Buscar huésped, unidad o número" value={texto} onChange={(e) => setTexto(e.target.value)} />
+        <label htmlFor="r-estado" className="visually-hidden">Estado</label>
+        <select id="r-estado" className="form-select" style={{ flex: '1 1 180px' }} value={estado} onChange={(e) => setEstado(e.target.value)}>
+          <option value="">Todos los estados</option>
+          {Object.entries(ESTADOS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </div>
 
-      <Row className="mt-4">
-        <Col sm={10}>
-          <Card>
-            <Card.Body>
-              {loading ? (
-                <div className="text-center my-4">
-                  <Spinner animation="border" variant="primary" />
-                  <p className="mt-2 text-muted">Cargando reservas...</p>
-                </div>
-              ) : (
-                <Table bordered hover responsive className="align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th
-                        style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
-                        onClick={() =>
-                          setSortOrden((o) => (o === 'asc' ? 'desc' : 'asc'))
-                        }
-                      >
-                        ID <span>{sortOrden === 'asc' ? '▲' : '▼'}</span>
-                      </th>
-                      <th>ID Huésped</th>
-                      <th>Nombre</th>
-                      <th>Unidad</th>
-                      <th>Check-In</th>
-                      <th>Check-Out</th>
-                      <th>Estado</th>
-                      <th>Acción</th>
+      {error && <div className="alert alert-danger" role="alert">{error}</div>}
+
+      {cargando ? (
+        <Cargando texto="Cargando reservas..." />
+      ) : (
+        <section aria-label="Listado de reservas" className="as-table-wrap">
+          <div className="table-responsive">
+            <table className="table table-hover" style={visibles.length ? { minWidth: 880 } : undefined}>
+              <thead>
+                <tr>
+                  <th scope="col">Huésped</th>
+                  <th scope="col">Unidad</th>
+                  <th scope="col">Fechas</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Cambiar a</th>
+                  <th scope="col" className="text-end"><span className="visually-hidden">Cancelar</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibles.map((r) => {
+                  const siguiente = siguienteEstado(r);
+                  const bloqueada = ocupada === r.id;
+                  return (
+                    <tr key={r.id}>
+                      <td>
+                        <strong className="fw-semibold">{r.guestName ?? '—'}</strong><br />
+                        <span className="small as-muted">Reserva n° {r.id}</span>
+                      </td>
+                      <td>{nombreUnidad(r)}</td>
+                      <td className="text-nowrap">{fechaCorta(r.checkInDate)} – {fechaCorta(r.checkOutDate)}</td>
+                      <td><EstadoBadge status={r.status} /></td>
+                      <td>
+                        {siguiente ? (
+                          <button type="button" className="btn btn-dark btn-sm text-nowrap" disabled={bloqueada} onClick={() => cambiar(r, siguiente)}>
+                            {ACCION_HACIA[siguiente] ?? ESTADOS[siguiente]}
+                          </button>
+                        ) : (
+                          <span className="small as-muted">Sin cambios posibles</span>
+                        )}
+                      </td>
+                      <td className="text-end">
+                        {esCancelable(r) && (
+                          <button type="button" className="btn btn-outline-danger btn-sm" disabled={bloqueada} onClick={() => cambiar(r, 'CANCELADA')}>
+                            Cancelar
+                          </button>
+                        )}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {reservasOrdenadas.length > 0 ? (
-                      reservasOrdenadas.map((item) => {
-                        const opciones = opcionesEstado(item.status);
-                        const estadoFinal = opciones.length === 1;
-
-                        return (
-                          <tr key={item.id}>
-                            <td><strong>#{item.id}</strong></td>
-                            <td><code>{item.guest_id ?? 'N/A'}</code></td>
-                            <td>{item.guest_name ?? 'N/A'}</td>
-                            <td>Unidad #{item.unit_id ?? 'N/A'}</td>
-                            <td>{formatDate(item.check_in_date)}</td>
-                            <td>{formatDate(item.check_out_date)}</td>
-                            <td>
-                              <Badge bg={getBadgeVariant(item.status)}>{item.status}</Badge>
-                            </td>
-                            <td>
-                              <Form.Select
-                                size="sm"
-                                value={item.status}
-                                disabled={updatingId === item.id || estadoFinal}
-                                onChange={(e) => handleEstadoChange(item.id, e.target.value)}
-                              >
-                                {opciones.map((estado) => (
-                                  <option key={estado} value={estado}>
-                                    {estado}
-                                  </option>
-                                ))}
-                              </Form.Select>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="8" className="text-center text-muted py-3">
-                          No hay reservas registradas.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col sm={2}>
-          <Button
-            variant="primary"
-            className="w-100 shadow-sm"
-            onClick={() => navigate('/formulario')}
-          >
-            + Nueva Reserva
-          </Button>
-        </Col>
-      </Row>
-    </div>
+                  );
+                })}
+                {visibles.length === 0 && (
+                  <tr><td colSpan="6" className="as-empty">No hay reservas que coincidan.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p className="m-0 px-4 py-3 small as-muted border-top">
+            {visibles.length} de {reservas.length} reservas
+          </p>
+        </section>
+      )}
+    </main>
   );
 }
-
-export default ReservasEditar;

@@ -1,0 +1,584 @@
+/*
+ * Tema "Refugio" de AndesStay.
+ * Se carga DESPUÉS de bootstrap.css (main.jsx): ajusta las variables de
+ * Bootstrap para que sus componentes tomen la paleta, y define unas pocas
+ * clases propias (prefijo .as-) para lo que Bootstrap no trae.
+ */
+
+:root {
+  /* Paleta principal extraída del logo */
+  --as-ground: #FAEFDE;         /* Fondo base crema */
+  --as-surface: #FFFBF5;        /* Superficie tarjetas/navbar (más luminosa que el fondo) */
+  --as-surface-2: #F3E4CE;      /* Superficie secundaria / hover tablas */
+  --as-line: #E5D4BC;           /* Bordes sutiles */
+  --as-line-strong: #D5C0A3;    /* Bordes de inputs/botones */
+  --as-track: #E8D8C0;          /* Fondo de barras de progreso */
+
+  --as-ink: #114052;            /* Azul petróleo profundo (texto principal) */
+  --as-ink-2: #415F6B;          /* Azul petróleo medio (texto secundario) */
+  --as-clay: #C78060;           /* Terracota / arcilla (acento primario) */
+  --as-clay-ink: #9E5638;       /* Terracota oscuro (hover / contraste texto) */
+  --as-forest: #426B4F;         /* Verde bosque (acento secundario) */
+  --as-forest-ink: #2E4F38;     /* Verde bosque oscuro (contraste texto) */
+
+  /* Colores de métricas / estadísticas */
+  --as-stat-total: #22c55e;     /* Total de reservas */
+  --as-stat-activas: #3b82f6;   /* Estadías activas */
+  --as-stat-completadas: #64748b; /* Completadas */
+
+  --as-font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --as-font-body: "Figtree", system-ui, sans-serif;
+  --as-radius: 20px;
+
+  /* Bootstrap */
+  --bs-body-bg: var(--as-ground);
+  --bs-body-color: var(--as-ink);
+  --bs-body-font-family: var(--as-font-body);
+  --bs-secondary-color: var(--as-ink-2);
+  --bs-border-color: var(--as-line);
+  --bs-link-color-rgb: 17, 64, 82;          /* #114052 */
+  --bs-link-hover-color-rgb: 158, 86, 56;   /* #9E5638 */
+  --bs-focus-ring-color: rgba(199, 128, 96, 0.35);
+}
+
+body {
+  background: var(--as-ground);
+  color: var(--as-ink);
+}
+
+h1, h2, h3, .h1, .h2, .h3, .h4, .h5 {
+  font-family: var(--as-font-display);
+  font-weight: 700;
+  color: var(--as-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--as-clay);
+  outline-offset: 2px;
+}
+
+/* ---------- Layout de página ---------- */
+
+.as-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.as-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.as-page-title {
+  margin: 0;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.as-page-lead {
+  margin: 10px 0 0;
+  font-size: 17px;
+  color: var(--as-ink-2);
+}
+
+.as-muted {
+  color: var(--as-ink-2);
+}
+
+.as-surface {
+  background: var(--as-surface);
+  border-radius: var(--as-radius);
+}
+
+.as-section-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.as-stat {
+  background: var(--as-surface);
+  border-radius: 22px;
+  padding: 22px 24px;
+  border: 1px solid var(--as-line);
+}
+
+.as-stat-value {
+  margin: 6px 0 0;
+  font-family: var(--as-font-display);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1;
+}
+
+/* Variantes opcionales para tarjetas de métricas */
+.as-stat-total { border-left: 5px solid var(--as-stat-total); }
+.as-stat-total .as-stat-value { color: #15803d; }
+
+.as-stat-activas { border-left: 5px solid var(--as-stat-activas); }
+.as-stat-activas .as-stat-value { color: #1d4ed8; }
+
+.as-stat-completadas { border-left: 5px solid var(--as-stat-completadas); }
+.as-stat-completadas .as-stat-value { color: #475569; }
+
+.as-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.as-grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Subtítulo de un grupo por día (avisos, auditoría) */
+.as-day-title {
+  margin: 0;
+  font-family: var(--as-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--as-ink-2);
+}
+
+.as-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--as-ink-2);
+}
+
+/* ---------- Píldoras de estado y tipo ---------- */
+
+.as-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Punto indicador con el color puro de cada estado */
+.as-pill::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* CREADA: #AA84B8 */
+.as-estado-CREADA {
+  background: rgba(170, 132, 184, 0.22);
+  color: #5b3769;
+}
+.as-estado-CREADA::before { background: #AA84B8; }
+
+/* CONFIRMADA: #198754 */
+.as-estado-CONFIRMADA {
+  background: rgba(25, 135, 84, 0.16);
+  color: #12613c;
+}
+.as-estado-CONFIRMADA::before { background: #198754; }
+
+/* CHECKIN_PENDIENTE: #ffc107 */
+.as-estado-CHECKIN_PENDIENTE {
+  background: rgba(255, 193, 7, 0.24);
+  color: #7c5800;
+}
+.as-estado-CHECKIN_PENDIENTE::before { background: #e0a800; }
+
+/* EN_ESTADIA: #0d6efd */
+.as-estado-EN_ESTADIA {
+  background: rgba(13, 110, 253, 0.15);
+  color: #084298;
+}
+.as-estado-EN_ESTADIA::before { background: #0d6efd; }
+
+/* CHECKOUT: #64748b */
+.as-estado-CHECKOUT {
+  background: rgba(100, 116, 139, 0.18);
+  color: #334155;
+}
+.as-estado-CHECKOUT::before { background: #64748b; }
+
+/* CANCELADA: #ef4444 */
+.as-estado-CANCELADA {
+  background: rgba(239, 68, 68, 0.16);
+  color: #991b1b;
+}
+.as-estado-CANCELADA::before { background: #ef4444; }
+
+/* ---------- Barra de cupos / proporciones ---------- */
+
+.as-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.as-meter-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.as-meter-track {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--as-track);
+  overflow: hidden;
+}
+
+.as-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* ---------- Navbar ---------- */
+
+.as-nav {
+  background: var(--as-surface);
+  border-bottom: 1px solid var(--as-line);
+}
+
+.as-nav .navbar-brand {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.as-nav .navbar-brand img {
+  height: 72px;
+  width: auto;
+  max-height: none;
+  object-fit: contain;
+}
+
+.as-nav .nav-link {
+  padding: 10px 16px !important;
+  border-radius: 999px;
+  color: var(--as-ink);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.as-nav .nav-link:hover {
+  color: var(--as-clay-ink);
+  background: rgba(199, 128, 96, 0.12);
+}
+
+.as-nav .nav-link.active {
+  background: var(--as-ink);
+  color: var(--as-ground);
+  font-weight: 600;
+}
+
+.as-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  background: var(--as-forest);
+  color: var(--as-ground);
+}
+
+.as-icon-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--as-line);
+  background: #fff;
+  color: var(--as-ink);
+  display: grid;
+  place-items: center;
+}
+
+.as-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--as-clay);
+  border: 2px solid #fff;
+}
+
+/* ---------- Tarjeta de unidad ---------- */
+
+.as-unit-card {
+  background: var(--as-surface);
+  border-radius: var(--as-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--as-line);
+}
+
+.as-unit-card img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  display: block;
+}
+
+.as-unit-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.as-unit-name {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.as-price {
+  margin: 0;
+  font-size: 15px;
+  color: var(--as-ink-2);
+}
+
+.as-price strong {
+  font-size: 20px;
+  color: var(--as-ink);
+}
+
+/* ---------- Tablas ---------- */
+
+.as-table-wrap {
+  background: var(--as-surface);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--as-line);
+}
+
+.as-table-wrap .table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: var(--as-surface-2);
+  margin: 0;
+  font-size: 15px;
+}
+
+.as-table-wrap thead th {
+  background: var(--as-surface-2);
+  color: var(--as-ink-2);
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 0;
+  padding: 14px 12px;
+}
+
+.as-table-wrap td {
+  padding: 14px 12px;
+  border-color: var(--as-line);
+  vertical-align: middle;
+}
+
+.as-table-wrap th:first-child,
+.as-table-wrap td:first-child { padding-left: 24px; }
+.as-table-wrap th:last-child,
+.as-table-wrap td:last-child { padding-right: 24px; }
+
+/* ---------- Bootstrap: botones, formularios, tarjetas, modales ---------- */
+
+.btn {
+  --bs-btn-border-radius: 999px;
+  --bs-btn-font-weight: 600;
+  --bs-btn-padding-x: 20px;
+  --bs-btn-padding-y: 10px;
+}
+
+.btn-sm {
+  --bs-btn-padding-x: 14px;
+  --bs-btn-padding-y: 8px;
+  --bs-btn-font-size: 14px;
+  --bs-btn-border-radius: 999px;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--as-forest);
+  --bs-btn-border-color: var(--as-forest);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-bg: var(--as-forest-ink);
+  --bs-btn-hover-border-color: var(--as-forest-ink);
+  --bs-btn-active-bg: var(--as-forest-ink);
+  --bs-btn-active-border-color: var(--as-forest-ink);
+  --bs-btn-disabled-bg: var(--as-forest);
+  --bs-btn-disabled-border-color: var(--as-forest);
+}
+
+.btn-success {
+  --bs-btn-bg: var(--as-forest);
+  --bs-btn-border-color: var(--as-forest);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-bg: var(--as-forest-ink);
+  --bs-btn-hover-border-color: var(--as-forest-ink);
+}
+
+.btn-dark {
+  --bs-btn-bg: var(--as-ink);
+  --bs-btn-border-color: var(--as-ink);
+  --bs-btn-color: var(--as-ground);
+  --bs-btn-hover-bg: #0b2c38;
+  --bs-btn-hover-border-color: #0b2c38;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--as-ink);
+  --bs-btn-border-color: var(--as-ink);
+  --bs-btn-hover-bg: var(--as-ink);
+  --bs-btn-hover-color: var(--as-ground);
+  --bs-btn-hover-border-color: var(--as-ink);
+  --bs-btn-active-bg: #0b2c38;
+  --bs-btn-active-color: var(--as-ground);
+  --bs-btn-active-border-color: #0b2c38;
+  --bs-btn-disabled-color: var(--as-ink-2);
+  --bs-btn-disabled-border-color: var(--as-line);
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #b91c1c;
+  --bs-btn-border-color: var(--as-line-strong);
+  --bs-btn-hover-bg: rgba(239, 68, 68, 0.14);
+  --bs-btn-hover-color: #991b1b;
+  --bs-btn-hover-border-color: #ef4444;
+  --bs-btn-active-bg: rgba(239, 68, 68, 0.14);
+  --bs-btn-active-color: #991b1b;
+}
+
+.form-control,
+.form-select {
+  min-height: 46px;
+  border-radius: 12px;
+  border-color: var(--as-line-strong);
+  color: var(--as-ink);
+  background-color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--as-clay);
+  box-shadow: 0 0 0 0.2rem rgba(199, 128, 96, 0.22);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-check-input:checked {
+  background-color: var(--as-clay);
+  border-color: var(--as-clay);
+}
+
+.card {
+  --bs-card-bg: var(--as-surface);
+  --bs-card-border-width: 1px;
+  --bs-card-border-color: var(--as-line);
+  --bs-card-border-radius: var(--as-radius);
+  --bs-card-inner-border-radius: var(--as-radius);
+}
+
+.modal-content {
+  background: var(--as-surface);
+  border: 0;
+  border-radius: 24px;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--as-line);
+}
+
+.alert {
+  border-radius: 14px;
+}
+
+.spinner-border {
+  color: var(--as-clay);
+}
+
+/* ---------- Barras "reservas por estado" (dashboard) ---------- */
+
+.as-barra-estado {
+  display: grid;
+  align-items: center;
+  gap: 8px 16px;
+  grid-template-columns: minmax(140px, 200px) minmax(0, 1fr) 56px;
+  grid-template-areas: "label barra cuenta";
+}
+
+.as-barra-estado > :nth-child(1) { grid-area: label; }
+.as-barra-estado > :nth-child(2) { grid-area: barra; }
+.as-barra-estado > :nth-child(3) { grid-area: cuenta; }
+
+/* Control segmentado (pestañas de recepción) */
+.as-segmentado {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--as-ground);
+}
+
+.as-segmentado .btn-link { color: var(--as-ink); }
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 575.98px) {
+  .as-page {
+    padding: 24px 16px 48px;
+    gap: 20px;
+  }
+
+  .as-page-lead { font-size: 16px; }
+
+  /* Cifras de a dos; si queda una sola en la última fila, ocupa el ancho */
+  .as-grid-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .as-grid-stats > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  /* Pestañas en una sola línea, con scroll lateral si no caben */
+  .nav-tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
+  .nav-tabs .nav-link { white-space: nowrap; }
+
+  .as-stat { padding: 18px; }
+  .as-stat-value { font-size: 40px; }
+
+  .as-table-wrap th:first-child,
+  .as-table-wrap td:first-child { padding-left: 16px; }
+  .as-table-wrap th:last-child,
+  .as-table-wrap td:last-child { padding-right: 16px; }
+
+  /* Etiqueta y cifra arriba, barra completa debajo */
+  .as-barra-estado {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "label cuenta" "barra barra";
+  }
+
+  .as-segmentado { width: 100%; }
+  .as-segmentado .btn {
+    flex: 1 1 0;
+    --bs-btn-padding-x: 6px;
+  }
+}

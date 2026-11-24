@@ -10,13 +10,9 @@ import Spinner from 'react-bootstrap/Spinner';
 import Tab from 'react-bootstrap/Tab';
 import Table from 'react-bootstrap/Table';
 import Tabs from 'react-bootstrap/Tabs';
-import { useApi } from '../useApi';
+import { API, useApi } from '../useApi';
 
-const baseUrl = import.meta.env.VITE_API_URL?.endsWith('/')
-  ? import.meta.env.VITE_API_URL
-  : `${import.meta.env.VITE_API_URL}/`;
-
-const API_URL = `${baseUrl}api/admin`;
+const API_URL = `${API}/admin`;
 
 // Cada cuánto se refrescan las métricas y los listados
 const POLL_MS = 10000;
@@ -78,13 +74,11 @@ function AccionEliminar({ protegido, deshabilitado, texto = 'Eliminar', onClick 
 
 function MetricCard({ titulo, valor, variante, detalle }) {
   return (
-    <Card className={`shadow-sm border-0 h-100 ${variante ? `bg-${variante} text-white` : 'bg-light'}`}>
-      <Card.Body>
-        <div className="small text-uppercase fw-semibold opacity-75">{titulo}</div>
-        <div className="display-6 fw-bold">{valor ?? '—'}</div>
-        {detalle && <div className="small opacity-75">{detalle}</div>}
-      </Card.Body>
-    </Card>
+    <div className="as-stat h-100" style={variante ? { background: '#f5d9cc', color: '#7c3418' } : undefined}>
+      <p className="m-0">{titulo}</p>
+      <p className="as-stat-value" style={{ color: 'inherit' }}>{valor ?? '—'}</p>
+      {detalle && <p className="m-0 mt-2 small">{detalle}</p>}
+    </div>
   );
 }
 
@@ -239,23 +233,23 @@ export default function RabbitAdmin() {
   const dlqConMensajes = (overview?.dlqMessages ?? 0) > 0;
 
   return (
-    <div className="container my-4">
+    <main className="as-page">
       {/* Encabezado */}
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-3 mb-4 border-bottom">
         <div>
-          <h1 className="mb-0">Administración RabbitMQ</h1>
+          <h1 className="as-page-title">Mensajería</h1>
           <small className="text-muted">
             Se actualiza cada {POLL_MS / 1000} s
             {lastUpdate && ` · última actualización ${lastUpdate.toLocaleTimeString('es-CL')}`}
           </small>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex flex-wrap gap-2">
           <Button variant="outline-secondary" onClick={() => cargarRef.current()}>
             Actualizar
           </Button>
           {overview?.managementUrl && (
             <Button
-              variant="warning"
+              className="btn btn-primary"
               href={overview.managementUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -354,7 +348,9 @@ export default function RabbitAdmin() {
                     <Form.Label className="small mb-1">Al llenarse (overflow)</Form.Label>
                     <Form.Select
                       value={cola.overflow}
-                      onChange={(e) => setCola({ ...cola, overflow: e.target.value })}
+                      onChange={(e) =>
+                        setCola({ ...cola, overflow: e.target.value, withDlq: e.target.value === 'reject-publish-dlx' || cola.withDlq })
+                      }
                     >
                       <option value="">Por defecto (descarta el más antiguo)</option>
                       <option value="drop-head">drop-head: descarta el más antiguo</option>
@@ -375,6 +371,7 @@ export default function RabbitAdmin() {
                       id="cola-dlq"
                       label="Crear su DLQ"
                       checked={cola.withDlq}
+                      disabled={cola.overflow === 'reject-publish-dlx'}
                       onChange={(e) => setCola({ ...cola, withDlq: e.target.checked })}
                     />
                   </Col>
@@ -388,7 +385,7 @@ export default function RabbitAdmin() {
             </Card.Body>
           </Card>
 
-          <Table responsive hover className="align-middle bg-white shadow-sm">
+          <Table responsive hover className="align-middle as-table-wrap">
             <thead className="table-light">
               <tr>
                 <th>Cola</th>
@@ -493,7 +490,7 @@ export default function RabbitAdmin() {
             </Card.Body>
           </Card>
 
-          <Table responsive hover className="align-middle bg-white shadow-sm">
+          <Table responsive hover className="align-middle as-table-wrap">
             <thead className="table-light">
               <tr>
                 <th>Exchange</th>
@@ -592,7 +589,7 @@ export default function RabbitAdmin() {
             </Card.Body>
           </Card>
 
-          <Table responsive hover className="align-middle bg-white shadow-sm">
+          <Table responsive hover className="align-middle as-table-wrap">
             <thead className="table-light">
               <tr>
                 <th>Exchange</th>
@@ -630,6 +627,6 @@ export default function RabbitAdmin() {
           </Table>
         </Tab>
       </Tabs>
-    </div>
+    </main>
   );
 }
