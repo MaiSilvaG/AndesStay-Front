@@ -243,7 +243,7 @@ export default function RabbitAdmin() {
             {lastUpdate && ` · última actualización ${lastUpdate.toLocaleTimeString('es-CL')}`}
           </small>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex flex-wrap gap-2">
           <Button variant="outline-secondary" onClick={() => cargarRef.current()}>
             Actualizar
           </Button>

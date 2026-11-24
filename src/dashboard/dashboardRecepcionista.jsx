@@ -54,7 +54,7 @@ export default function RecepcionistaDashboard() {
       <section aria-label="Huéspedes" className="as-table-wrap">
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 pt-4 pb-3">
           <h2 className="as-section-title">Huéspedes</h2>
-          <div role="group" aria-label="Filtrar" className="d-flex gap-1 p-1 rounded-pill" style={{ background: 'var(--as-ground)' }}>
+          <div role="group" aria-label="Filtrar" className="as-segmentado">
             {PESTANAS.map((p) => (
               <button key={p.id} type="button" aria-pressed={pestana === p.id}
                 className={`btn btn-sm ${pestana === p.id ? 'btn-dark' : 'btn-link text-decoration-none'}`}
@@ -65,7 +65,7 @@ export default function RecepcionistaDashboard() {
           </div>
         </div>
         <div className="table-responsive">
-          <table className="table" style={{ minWidth: 760 }}>
+          <table className="table" style={filas.length ? { minWidth: 760 } : undefined}>
             <thead>
               <tr>
                 <th scope="col">Huésped</th>

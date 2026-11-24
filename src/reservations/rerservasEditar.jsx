@@ -49,7 +49,7 @@ export default function ReservasEditar() {
       ) : (
         <section aria-label="Listado de reservas" className="as-table-wrap">
           <div className="table-responsive">
-            <table className="table table-hover" style={{ minWidth: 880 }}>
+            <table className="table table-hover" style={visibles.length ? { minWidth: 880 } : undefined}>
               <thead>
                 <tr>
                   <th scope="col">Huésped</th>

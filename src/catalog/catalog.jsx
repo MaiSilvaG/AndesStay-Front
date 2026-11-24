@@ -70,7 +70,7 @@ export default function Catalog({ personal = false }) {
           {ubicaciones.map((l) => <option key={l}>{l}</option>)}
         </select>
       </div>
-      <div className="form-check d-flex align-items-center gap-2 m-0">
+      <div className="form-check d-flex align-items-center gap-2 m-0 ps-0">
         <input id="f-cupos" type="checkbox" className="form-check-input m-0" checked={filtros.soloDisponibles}
           onChange={(e) => setFiltro("soloDisponibles", e.target.checked)} />
         <label htmlFor="f-cupos" className="form-check-label">Solo con cupos disponibles</label>
@@ -98,7 +98,7 @@ export default function Catalog({ personal = false }) {
   ) : personal ? (
     <div className="as-table-wrap">
       <div className="table-responsive">
-        <table className="table table-hover">
+        <table className="table table-hover" style={{ minWidth: 720 }}>
           <thead>
             <tr>
               <th scope="col">Unidad</th>

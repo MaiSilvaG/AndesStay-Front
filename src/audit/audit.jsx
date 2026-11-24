@@ -166,7 +166,7 @@ export default function Audit() {
               <ol className="list-unstyled m-0">
                 {lista.map((ev, index) => (
                   <li key={ev.event_id ?? index} className="d-flex flex-wrap align-items-center gap-3 py-2 border-top">
-                    <span className="small as-muted" style={{ flex: '0 0 48px', fontVariantNumeric: 'tabular-nums' }}>
+                    <span className="small as-muted text-nowrap" style={{ flex: '0 0 auto', minWidth: 48, fontVariantNumeric: 'tabular-nums' }}>
                       {new Date(ev.occurred_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span style={{ flex: '1 1 260px' }}>

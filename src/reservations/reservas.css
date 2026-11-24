@@ -65,3 +65,28 @@
   min-width: 0;
   padding: 28px;
 }
+
+.proxima img {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Apilada: la foto ocupa todo el ancho de la tarjeta, como franja */
+@media (max-width: 767.98px) {
+  .proxima img {
+    flex-basis: 100%;
+    max-width: none;
+    height: 200px;
+    min-height: 0;
+  }
+
+  .proxima-cuerpo { padding: 22px 20px; }
+  .proxima-titulo { font-size: 26px; }
+}
+
+@media (max-width: 575.98px) {
+  .reserva-fila { padding: 14px 16px; }
+  .reserva-fechas { flex-basis: 100%; }
+  .reserva-estado { flex: 0 0 auto; }
+  .nueva-reserva-form { padding: 20px 16px; }
+}

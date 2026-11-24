@@ -51,7 +51,7 @@ function Navigation() {
 
   return (
     <Navbar expand="lg" className="as-nav">
-      <div className="container-xl px-4 py-2 gap-3">
+      <div className="container-xl px-3 px-sm-4 py-2 gap-3">
         <Navbar.Brand as={Link} to={rutaInicio(roles)} aria-label="AndesStay, inicio">
           <img src={logo} alt="AndesStay"/>
         </Navbar.Brand>
@@ -70,10 +70,11 @@ function Navigation() {
               {isPersonal && <Nav.Link as={NavLink} to="/catalog">Catalogo</Nav.Link>}
               {(isAdmin || isAuditor) && <Nav.Link as={NavLink} to="/audit">Auditoria</Nav.Link>}
               {isAdmin && <Nav.Link as={NavLink} to="/rabbitAdmin">Mensajeria</Nav.Link>}
+              {isAdmin && <Nav.Link as={NavLink} to="/kafkaAdmin">Kafka</Nav.Link>}
             </Nav>
           )}
 
-          <div className="d-flex align-items-center gap-3 ms-auto">
+          <div className="d-flex align-items-center gap-3 ms-lg-auto py-2 py-lg-0 min-w-0">
             {isAuthenticated && rutaAvisos && (
               <Link
                 to={rutaAvisos}
@@ -85,9 +86,9 @@ function Navigation() {
               </Link>
             )}
             {isAuthenticated ? (
-              <Link to="/login" className="d-flex align-items-center gap-2 text-decoration-none" aria-label="Mi cuenta">
+              <Link to="/login" className="d-flex align-items-center gap-2 text-decoration-none min-w-0" aria-label="Mi cuenta">
                 <span className="as-avatar" aria-hidden="true">{(nombre[0] || 'U').toUpperCase()}</span>
-                <span className="fw-medium">{nombre}</span>
+                <span className="fw-medium text-truncate">{nombre}</span>
               </Link>
             ) : (
               <Nav.Link as={NavLink} to="/login">Iniciar sesión</Nav.Link>

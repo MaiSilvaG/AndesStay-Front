@@ -10,6 +10,7 @@ import ReservasEditar from './reservations/rerservasEditar';
 import ReservasCliente from './reservations/reservasCliente';
 import Notificaciones from './notificacion/Notificaciones';
 import RabbitAdmin from './rabbitAdmin/rabbitAdmin';
+import KafkaAdmin from './kafkaAdmin/kafkaAdmin';
 import { ProtectedRoute } from './ProtectedRoute';
 
 function App() {
@@ -122,6 +123,16 @@ function App() {
               <RabbitAdmin />
             </ProtectedRoute>
           } 
+        />
+
+        {/* kafkaAdmin: administración de Kafka, solo Admin */}
+        <Route
+          path="/kafkaAdmin"
+          element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <KafkaAdmin />
+            </ProtectedRoute>
+          }
         />
 
         {/* audit: Auditor */}

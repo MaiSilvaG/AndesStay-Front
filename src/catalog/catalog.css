@@ -71,3 +71,32 @@
   max-width: 360px;
   box-shadow: 0 0 0 2px var(--as-clay);
 }
+
+/* Cuando el rail ya no cabe al lado (el cuerpo envuelve), filtros y panel ocupan todo el ancho */
+@media (max-width: 899.98px) {
+  .catalogo-filtros.en-columna {
+    flex: 1 1 100%;
+    max-width: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .catalogo-filtros.en-columna .filtro-buscar { flex: 1 1 240px; }
+}
+
+/* Tabla (560) + panel (300) + espacio: por debajo de esto el panel baja */
+@media (max-width: 939.98px) {
+  .crear-unidad {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .catalogo-filtros,
+  .catalogo-filtros.en-fila {
+    padding: 18px 16px;
+    gap: 16px;
+  }
+}

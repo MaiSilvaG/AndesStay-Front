@@ -64,7 +64,7 @@ export default function Dashboard() {
         ) : (
           <ul className="list-unstyled m-0 d-flex flex-column gap-3">
             {Object.entries(ESTADOS).map(([k, label]) => (
-              <li key={k} className="d-grid align-items-center gap-3" style={{ gridTemplateColumns: 'minmax(140px, 200px) minmax(0, 1fr) 56px' }}>
+              <li key={k} className="as-barra-estado">
                 <span className="fw-semibold">{label}</span>
                 <span className="as-meter-track" style={{ height: 28, borderRadius: 8, background: 'var(--as-ground)' }} aria-hidden="true">
                   <span className="as-meter-fill" style={{ borderRadius: 8, width: `${((porEstado[k] ?? 0) / maxEstado) * 100}%`, background: COLORES_ESTADO[k] }} />
@@ -82,7 +82,7 @@ export default function Dashboard() {
           <Link to="/reservasEditar" className="fw-semibold">Ver todas las reservas</Link>
         </div>
         <div className="table-responsive">
-          <table className="table" style={{ minWidth: 760 }}>
+          <table className="table" style={ultimas.length ? { minWidth: 760 } : undefined}>
             <thead>
               <tr>
                 <th scope="col">Reserva</th>

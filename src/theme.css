@@ -518,3 +518,67 @@ h1, h2, h3, .h1, .h2, .h3, .h4, .h5 {
 .spinner-border {
   color: var(--as-clay);
 }
+
+/* ---------- Barras "reservas por estado" (dashboard) ---------- */
+
+.as-barra-estado {
+  display: grid;
+  align-items: center;
+  gap: 8px 16px;
+  grid-template-columns: minmax(140px, 200px) minmax(0, 1fr) 56px;
+  grid-template-areas: "label barra cuenta";
+}
+
+.as-barra-estado > :nth-child(1) { grid-area: label; }
+.as-barra-estado > :nth-child(2) { grid-area: barra; }
+.as-barra-estado > :nth-child(3) { grid-area: cuenta; }
+
+/* Control segmentado (pestañas de recepción) */
+.as-segmentado {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--as-ground);
+}
+
+.as-segmentado .btn-link { color: var(--as-ink); }
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 575.98px) {
+  .as-page {
+    padding: 24px 16px 48px;
+    gap: 20px;
+  }
+
+  .as-page-lead { font-size: 16px; }
+
+  /* Cifras de a dos; si queda una sola en la última fila, ocupa el ancho */
+  .as-grid-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .as-grid-stats > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  /* Pestañas en una sola línea, con scroll lateral si no caben */
+  .nav-tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; }
+  .nav-tabs .nav-link { white-space: nowrap; }
+
+  .as-stat { padding: 18px; }
+  .as-stat-value { font-size: 40px; }
+
+  .as-table-wrap th:first-child,
+  .as-table-wrap td:first-child { padding-left: 16px; }
+  .as-table-wrap th:last-child,
+  .as-table-wrap td:last-child { padding-right: 16px; }
+
+  /* Etiqueta y cifra arriba, barra completa debajo */
+  .as-barra-estado {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "label cuenta" "barra barra";
+  }
+
+  .as-segmentado { width: 100%; }
+  .as-segmentado .btn {
+    flex: 1 1 0;
+    --bs-btn-padding-x: 6px;
+  }
+}
